@@ -29,7 +29,7 @@ body::before{content:'';position:fixed;inset:0;background:
 /* HEADER */
 header{border-bottom:1px solid var(--border);padding:18px 0 16px;margin-bottom:32px}
 .hdr{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.logo{font-family:var(--fh);font-size:24px;font-weight:700;
+.logo{font-family:var(--fh);font-size:48px;font-weight:700;
   background:linear-gradient(120deg,var(--accent),var(--green));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.3px}
 .logo-tag{font-family:var(--fm);font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-left:10px;vertical-align:middle}
@@ -132,6 +132,15 @@ tbody tr:hover td{background:rgba(56,189,248,.025)}
   border-radius:8px;color:var(--t2);padding:8px 16px;cursor:pointer;font-size:12px;font-family:var(--fb);transition:all var(--transition)}
 .dl-btn:hover{border-color:var(--green);color:var(--green)}
 
+/* ACCORDION */
+details.acc{margin-bottom:10px}
+details.acc>summary{font-size:11px;color:var(--t3);cursor:pointer;list-style:none;padding:6px 0}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary::before{content:'▸ ';color:var(--accent)}
+details.acc[open]>summary::before{content:'▾ '}
+details.acc>.acc-body{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;
+  font-size:11px;color:var(--t3);line-height:1.6;margin-top:4px}
+
 /* HELP TOOLTIP */
 .help-q{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
   border:1px solid var(--border2);color:var(--t3);font-size:10px;cursor:help;margin-left:5px;position:relative;vertical-align:middle}
@@ -186,7 +195,7 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   </div>
   <p class="subtitle" id="subtitle"></p>
   <div style="margin-top:10px">
-    <button onclick="loadDemoAndRun()" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'" id="demoBtn"></button>
+    <button onclick="loadDemoAndRun()" style="padding:10px 28px;border-radius:8px;border:2px solid var(--accent);background:none;color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:16px;font-weight:600;transition:all var(--transition)" onmouseover="this.style.background='rgba(56,189,248,.1)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='none'" id="demoBtn"></button>
   </div>
 </header>
 
@@ -202,11 +211,14 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
     </div>
   </div>
 
-  <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-    <span style="color:var(--accent)">Format:</span> 1列目 = 遺伝子名（Gene/Symbol）、2列目以降 = サンプルごとの発現量（FPKM/TPM）<br>
-    <span style="color:var(--t4)">例: Gene | Sample1 | Sample2 | ... の行列形式</span>
-    <button onclick="dlTemplate('fpkm')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
-  </div>
+  <details class="acc">
+    <summary>フォーマット詳細・テンプレート</summary>
+    <div class="acc-body">
+      <span style="color:var(--accent)">Format:</span> 1列目 = 遺伝子名（Gene/Symbol）、2列目以降 = サンプルごとの発現量（FPKM/TPM）<br>
+      <span style="color:var(--t4)">例: Gene | Sample1 | Sample2 | ... の行列形式</span>
+      <button onclick="dlTemplate('fpkm')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+    </div>
+  </details>
   <div class="drop" id="fpkmDrop"
        ondragover="dov(event,'fpkmDrop')" ondragleave="dlv('fpkmDrop')" ondrop="dop(event,'fpkm')">
     <input type="file" id="fpkmFile" accept=".csv,.tsv,.txt,.xlsx,.xls" onchange="loadFPKM(event)">
@@ -245,11 +257,14 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
     </div>
   </div>
 
-  <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-    <span style="color:var(--accent)">Format:</span> ID列（サンプル名）+ Dx列（診断群、"Control" 必須）を含むテーブル。列順不問。Age列があれば散布図に使用。<br>
-    <span style="color:var(--t4)">例: ID | Dx | Age | Sex | ...</span>
-    <button onclick="dlTemplate('demo')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
-  </div>
+  <details class="acc">
+    <summary>フォーマット詳細・テンプレート</summary>
+    <div class="acc-body">
+      <span style="color:var(--accent)">Format:</span> ID列（サンプル名）+ Dx列（診断群、"Control" 必須）を含むテーブル。列順不問。Age列があれば散布図に使用。<br>
+      <span style="color:var(--t4)">例: ID | Dx | Age | Sex | ...</span>
+      <button onclick="dlTemplate('demo')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+    </div>
+  </details>
   <div class="drop" id="demoDrop"
        ondragover="dov(event,'demoDrop')" ondragleave="dlv('demoDrop')" ondrop="dop(event,'demo')">
     <input type="file" id="demoFile" accept=".csv,.tsv,.txt,.xlsx,.xls" onchange="loadDemo(event)">
@@ -294,11 +309,13 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
     <div style="display:flex;gap:6px;flex-wrap:wrap" id="presetBtns"></div>
   </div>
 
-  <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-    <span style="color:var(--accent)" id="orUploadLabel"></span><br>
-    <span style="color:var(--t4)">Symbol + Fold Change 列があればOK。列順不問、FC形式は自動判定。P-Value/Rank列は無視されます。</span>
-    <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
-  </div>
+  <details class="acc">
+    <summary><span id="orUploadLabel"></span> — フォーマット詳細・テンプレート</summary>
+    <div class="acc-body">
+      Symbol + Fold Change 列があればOK。列順不問、FC形式は自動判定。P-Value/Rank列は無視されます。
+      <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+    </div>
+  </details>
   <div class="drop" id="idxDrop"
        ondragover="dov(event,'idxDrop')" ondragleave="dlv('idxDrop')" ondrop="dop(event,'idx')">
     <input type="file" id="idxFile" accept=".csv,.tsv,.txt,.xlsx,.xls" multiple onchange="loadIdxFiles(event)">
@@ -368,28 +385,33 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 
   <hr class="div">
   <div id="figSection" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
       <span style="font-size:14px;font-weight:600;color:var(--t2)">Figures</span>
-      <button onclick="document.getElementById('figSettings').style.display=document.getElementById('figSettings').style.display==='none'?'':'none'" style="padding:4px 12px;border:1px solid var(--border2);border-radius:5px;background:none;color:var(--t3);cursor:pointer;font-size:11px;font-family:var(--fb)">Figure Settings</button>
+      <label style="font-size:11px;color:var(--t3)">X-axis variable:
+        <select id="xAxisVar" onchange="redrawFigures()" style="padding:3px 8px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px;margin-left:4px"></select>
+      </label>
     </div>
-    <div id="figSettings" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:14px">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:11px;color:var(--t2)">
-        <label>Width (px)<br><input id="figW" type="number" value="1000" min="400" max="4000" step="100" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
-        <label>Height (px)<br><input id="figH" type="number" value="1000" min="400" max="4000" step="100" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
-        <label>Scale (DPI)<br><select id="figScale" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"><option value="1">1x (72dpi)</option><option value="2" selected>2x (144dpi)</option><option value="3">3x (216dpi)</option><option value="4">4x (288dpi)</option></select></label>
-        <label>Font size<br><input id="figFontSize" type="number" value="14" min="8" max="30" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
-        <label>Title font<br><input id="figTitleSize" type="number" value="16" min="10" max="36" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
-        <label>Font family<br><select id="figFont" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"><option value="Arial">Arial</option><option value="Helvetica">Helvetica</option><option value="Times New Roman">Times New Roman</option><option value="IBM Plex Sans">IBM Plex Sans</option></select></label>
-        <label>Axis label X<br><input id="figXLabel" type="text" value="" placeholder="auto" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
-        <label>Axis label Y<br><input id="figYLabel" type="text" value="" placeholder="auto" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
-        <label>Marker size<br><input id="figMarkerSize" type="number" value="7" min="2" max="20" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+    <details class="acc" style="margin-bottom:14px">
+      <summary style="font-size:12px">Advanced: Figure Settings</summary>
+      <div class="acc-body" id="figSettings">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:11px;color:var(--t2)">
+          <label>Width (px)<br><input id="figW" type="number" value="1000" min="400" max="4000" step="100" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+          <label>Height (px)<br><input id="figH" type="number" value="1000" min="400" max="4000" step="100" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+          <label>Scale (DPI)<br><select id="figScale" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"><option value="1">1x (72dpi)</option><option value="2" selected>2x (144dpi)</option><option value="3">3x (216dpi)</option><option value="4">4x (288dpi)</option></select></label>
+          <label>Font size<br><input id="figFontSize" type="number" value="14" min="8" max="30" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+          <label>Title font<br><input id="figTitleSize" type="number" value="16" min="10" max="36" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+          <label>Font family<br><select id="figFont" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"><option value="Arial">Arial</option><option value="Helvetica">Helvetica</option><option value="Times New Roman">Times New Roman</option><option value="IBM Plex Sans">IBM Plex Sans</option></select></label>
+          <label>Axis label X<br><input id="figXLabel" type="text" value="" placeholder="auto" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+          <label>Axis label Y<br><input id="figYLabel" type="text" value="" placeholder="auto" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+          <label>Marker size<br><input id="figMarkerSize" type="number" value="7" min="2" max="20" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        </div>
+        <div style="margin-top:10px">
+          <span style="font-size:10px;color:var(--t3)">Dx colors:</span>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap" id="figColorInputs"></div>
+        </div>
+        <button onclick="applyFigSettings()" style="margin-top:10px;padding:5px 16px;border:1px solid var(--accent);border-radius:5px;background:none;color:var(--accent);cursor:pointer;font-size:11px;font-family:var(--fb)">Apply & Redraw</button>
       </div>
-      <div style="margin-top:10px">
-        <span style="font-size:10px;color:var(--t3)">Dx colors:</span>
-        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap" id="figColorInputs"></div>
-      </div>
-      <button onclick="applyFigSettings()" style="margin-top:10px;padding:5px 16px;border:1px solid var(--accent);border-radius:5px;background:none;color:var(--accent);cursor:pointer;font-size:11px;font-family:var(--fb)">Apply & Redraw</button>
-    </div>
+    </details>
     <div id="figContainer"></div>
   </div>
 
@@ -408,6 +430,10 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 </div>
 
 
+<div style="margin:24px 0 0;padding:14px 18px;background:var(--s2);border:1px solid var(--border);border-radius:10px;text-align:center">
+  <span style="color:var(--green);font-size:13px;font-weight:600" id="privacyNote"></span>
+</div>
+
 <footer>
   RFind Web Tool v3 &#8212; <span id="footNote"></span><br>
   <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">Running Fisher (4-direction) &middot; All computation runs client-side</span>
@@ -420,7 +446,7 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 ══════════════════════════════════════════════════════ */
 const T = {
   ja:{
-    subtitle:"RFindは、あなたの遺伝子発現データが参照gene setとどの程度「方向性を含めて一致」しているかを、サンプルごとに定量するツールです。発現量マトリックスと参照インデックスをアップロードするだけで、各サンプルのRFindスコア（Running Fisher法）・統計検定・可視化が得られます。例えば「疾患群で発生関連遺伝子が胎児的パターンに回帰しているか？」といった問いに答えられます。すべての処理はブラウザ上で完結し、データは外部に送信されません。",
+    subtitle:"RFindは、あなたの遺伝子発現データが参照gene setとどの程度「方向性を含めて一致」しているかを、サンプルごとに定量するツールです。発現量マトリックスと参照インデックスをアップロードするだけで、各サンプルのRFスコアを算出します。すべての処理はブラウザ上で完結し、データは外部に送信されません。",
     s1title:"Step 1: 発現量マトリックス",
     s1sub:"遺伝子 x サンプルの発現量マトリックス（CSV/Excel）をアップロードしてください。",
     s2title:"Step 2: サンプル情報（Demographics）",
@@ -448,10 +474,11 @@ const T = {
     statSamples:"解析サンプル数", statIndexes:"インデックス数", statCtrl:"Controlサンプル数", statGenes:"共通遺伝子数",
     dlLbl:"結果をExcelでダウンロード",
     footNote:"本ツールはプロトタイプです。結果の解釈は慎重に行ってください。",
+    privacyNote:"🔒 あなたのデータは安全です — すべての解析はお使いのブラウザ内で完結し、データは一切外部サーバーに送信されません。",
     colSample:"サンプルID", colDx:"診断群",
   },
   en:{
-    subtitle:"RFind quantifies how well each sample's gene expression profile matches a reference gene set in terms of directional concordance. Upload your expression matrix and reference indexes to get per-sample RFind scores (Running Fisher method), statistical tests, and publication-ready figures. For example: 'Do disease samples show a fetal-like gene expression pattern?' All computation runs in your browser — no data is sent to any server.",
+    subtitle:"RFind quantifies how well each sample's gene expression matches a reference gene set in terms of directional concordance, on a per-sample basis. Simply upload your expression matrix and reference indexes to compute RF scores. All computation runs in your browser — no data is sent to any server.",
     s1title:"Step 1: Expression Matrix",
     s1sub:"Upload a gene x sample expression matrix (CSV/Excel).",
     s2title:"Step 2: Sample Info (Demographics)",
@@ -479,6 +506,7 @@ const T = {
     statSamples:"Samples analyzed", statIndexes:"Indexes", statCtrl:"Control samples", statGenes:"Common genes",
     dlLbl:"Download results as Excel",
     footNote:"This tool is a prototype. Interpret results carefully.",
+    privacyNote:"🔒 Your data stays private — all computation runs entirely in your browser. No data is ever sent to any external server.",
     colSample:"Sample ID", colDx:"Diagnosis",
   }
 };
@@ -488,7 +516,7 @@ function t(k){ return T[L][k]||k }
 function applyTexts(){
   const ids=['subtitle','s1title','s1sub','s2title','s2sub','s3title','s3sub','s4title','s4sub',
     'resTitle','resSub','clickUp1','orDrag1','clickUp2','orDrag2','clickUp3','orDrag3','idxHint',
-    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel'];
+    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel','privacyNote'];
   ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
   buildPresetBtns();
 }
@@ -615,7 +643,6 @@ function renderIdxList(){
       <span style="color:${col}">${idx.name}</span>&nbsp;
       <span style="color:var(--t3)">(UP:${idx.nUp} DN:${idx.nDn} / ${idx.genes.length} genes)</span>&nbsp;
       <span style="color:var(--accent);font-size:10px">[${fmt}]</span>
-      ${idx.normCount>0?`&nbsp;<span style="color:var(--green);font-size:10px">[HGNC:${idx.normCount}]</span>`:''}
       <span style="cursor:pointer;margin-left:8px;color:var(--t4)" onclick="removeIdx(${i})">&times;</span>
     </div>`;
   }).join('');
@@ -1771,6 +1798,53 @@ function drawFigures(res){
   container.innerHTML='';
   document.getElementById('figSection').style.display='';
 
+  // Populate X-axis variable selector
+  const sel=document.getElementById('xAxisVar');
+  const prevVal=sel.value;
+  sel.innerHTML='<option value="Dx">Dx</option>';
+  if(DEMO&&DEMO.extraCols){
+    DEMO.extraCols.forEach(ci=>{
+      const name=DEMO.header[ci];
+      sel.innerHTML+=`<option value="${ci}">${name}</option>`;
+    });
+  }
+  if(prevVal) sel.value=prevVal;
+  if(!sel.value) sel.value='Dx';
+
+  drawFiguresWithVar(res);
+  initColorInputs();
+}
+
+function redrawFigures(){
+  if(lastRes) drawFiguresWithVar(lastRes);
+}
+
+function getXVarData(row){
+  const sel=document.getElementById('xAxisVar');
+  const val=sel.value;
+  if(val==='Dx') return row.dx;
+  const ci=parseInt(val);
+  if(isNaN(ci)||!row.demoRow) return null;
+  return row.demoRow._row[ci];
+}
+
+function getXVarName(){
+  const sel=document.getElementById('xAxisVar');
+  if(sel.value==='Dx') return 'Dx';
+  const ci=parseInt(sel.value);
+  return DEMO?.header?.[ci]||'Variable';
+}
+
+function isXVarNumeric(res){
+  const vals=res.scores.map(r=>getXVarData(r)).filter(v=>v!==null&&v!==undefined&&v!=='');
+  const numCount=vals.filter(v=>!isNaN(parseFloat(v))).length;
+  return numCount > vals.length*0.7;  // >70% numeric → treat as numeric
+}
+
+function drawFiguresWithVar(res){
+  const container=document.getElementById('figContainer');
+  container.innerHTML='';
+
   const dxGroups=[...new Set(res.scores.map(r=>r.dx))];
   dxGroups.sort((a,b)=>a==='Control'?-1:b==='Control'?1:a.localeCompare(b));
 
@@ -1785,138 +1859,120 @@ function drawFigures(res){
   const plotlyConfig={responsive:true, displayModeBar:true,
     toImageButtonOptions:{format:'svg',filename:'rfind_figure',scale:2}};
 
-  // --- Box plots with p-values (one per index) ---
+  const xVarName=getXVarName();
+  const xIsNumeric=isXVarNumeric(res);
+  const isDx=(document.getElementById('xAxisVar').value==='Dx');
+
+  // --- Dx Box plots with p-values (always shown) ---
   for(let i=0;i<nIdx;i++){
     const idxName=res.selIdx[i].name;
-    const div=createPlotlyCard(container, `Box Plot: ${idxName}`, `box_${i}`, t('helpBox'));
+    const div=createPlotlyCard(container, `RFind Score by Dx — ${idxName}`, `box_${i}`, t('helpBox'));
 
     const traces=dxGroups.map(dx=>{
       const vals=res.scores.filter(r=>r.dx===dx).map(r=>r.scores[i]);
-      return {
-        y:vals, type:'box', name:dx,
-        marker:{color:dxColor(dx)},
-        boxpoints:'all', jitter:0.4, pointpos:0,
-        line:{width:1.5},
-      };
+      return {y:vals, type:'box', name:dx, marker:{color:dxColor(dx)}, boxpoints:'all', jitter:0.4, pointpos:0, line:{width:1.5}};
     });
 
-    // Compute p-values (each Dx vs Control, Wilcoxon)
     const controlVals=res.scores.filter(r=>r.dx==='Control').map(r=>r.scores[i]);
     const annotations=[];
-    let annY=Math.max(...res.scores.map(r=>r.scores[i]))*1.05;
-    dxGroups.forEach((dx,di)=>{
+    const annY=Math.max(...res.scores.map(r=>r.scores[i]))*1.05;
+    dxGroups.forEach(dx=>{
       if(dx==='Control')return;
       const vals=res.scores.filter(r=>r.dx===dx).map(r=>r.scores[i]);
       const mw=mannWhitneyU(controlVals, vals);
       const star=mw.p<0.001?'***':mw.p<0.01?'**':mw.p<0.05?'*':'ns';
-      annotations.push({
-        x:dx, y:annY, text:`${star}<br><span style="font-size:9px">${formatP(mw.p)}</span>`,
-        showarrow:false, font:{size:11, color:mw.p<0.05?'#dc2626':'#64748b'},
-      });
+      annotations.push({x:dx, y:annY, text:`${star}<br><span style="font-size:9px">${formatP(mw.p)}</span>`,
+        showarrow:false, font:{size:11, color:mw.p<0.05?'#dc2626':'#64748b'}});
     });
 
-    Plotly.newPlot(div, traces, {
-      ...plotlyLayout,
-      title:{text:`RFind Score by Dx — ${idxName}`, font:{size:fs.titleSize}},
-      yaxis:{title:'RFind Score'},
-      xaxis:{title:''},
-      annotations,
-    }, plotlyConfig);
+    Plotly.newPlot(div, traces, {...plotlyLayout, title:{text:`RFind Score by Dx — ${idxName}`,font:{size:fs.titleSize}},
+      yaxis:{title:'RFind Score'}, xaxis:{title:''}, annotations}, plotlyConfig);
   }
 
-  // --- Scatter plots with regression (Age vs RFscore, one per index) ---
-  if(res.hasAge){
-    for(let i=0;i<nIdx;i++){
-      const idxName=res.selIdx[i].name;
-      const div=createPlotlyCard(container, `Age vs RFind Score: ${idxName}`, `scat_${i}`, t('helpScatter'));
+  // --- X-variable plots (if not Dx, since Dx boxplot is always shown above) ---
+  if(!isDx){
+    if(xIsNumeric){
+      // Numeric variable → Scatter plot with regression
+      for(let i=0;i<nIdx;i++){
+        const idxName=res.selIdx[i].name;
+        const div=createPlotlyCard(container, `${xVarName} vs RFind Score: ${idxName}`, `xvar_${i}`, t('helpScatter'));
 
-      const traces=dxGroups.map(dx=>{
-        const pts=res.scores.filter(r=>r.dx===dx&&r.age!==null);
-        return {
-          x:pts.map(r=>r.age), y:pts.map(r=>r.scores[i]),
-          mode:'markers', type:'scatter', name:dx,
-          marker:{color:dxColor(dx), size:fs.markerSize, opacity:0.8},
-        };
-      });
+        const traces=dxGroups.map(dx=>{
+          const pts=res.scores.filter(r=>r.dx===dx&&getXVarData(r)!==null&&getXVarData(r)!=='');
+          return {
+            x:pts.map(r=>parseFloat(getXVarData(r))), y:pts.map(r=>r.scores[i]),
+            mode:'markers', type:'scatter', name:dx,
+            marker:{color:dxColor(dx), size:fs.markerSize, opacity:0.8},
+          };
+        });
 
-      // Overall regression line
-      const allPts=res.scores.filter(r=>r.age!==null);
-      const xs=allPts.map(r=>r.age), ys=allPts.map(r=>r.scores[i]);
-      const reg=linearRegression(xs,ys);
-      const xMin=Math.min(...xs), xMax=Math.max(...xs);
-      traces.push({
-        x:[xMin,xMax], y:[reg.intercept+reg.slope*xMin, reg.intercept+reg.slope*xMax],
-        mode:'lines', type:'scatter', name:`R²=${reg.r2.toFixed(3)} ${formatP(reg.p)}`,
-        line:{color:'#334155', width:2, dash:'dot'},
-        showlegend:true,
-      });
+        const allPts=res.scores.filter(r=>getXVarData(r)!==null&&getXVarData(r)!==''&&!isNaN(parseFloat(getXVarData(r))));
+        const xs=allPts.map(r=>parseFloat(getXVarData(r))), ys=allPts.map(r=>r.scores[i]);
+        const reg=linearRegression(xs,ys);
+        if(xs.length>=3){
+          const xMin=Math.min(...xs), xMax=Math.max(...xs);
+          traces.push({x:[xMin,xMax], y:[reg.intercept+reg.slope*xMin, reg.intercept+reg.slope*xMax],
+            mode:'lines', type:'scatter', name:`R²=${reg.r2.toFixed(3)} ${formatP(reg.p)}`,
+            line:{color:'#334155', width:2, dash:'dot'}, showlegend:true});
+        }
 
-      Plotly.newPlot(div, traces, {
-        ...plotlyLayout,
-        title:{text:`Age vs RFind Score — ${idxName}`, font:{size:fs.titleSize}},
-        xaxis:{title:'Age'}, yaxis:{title:'RFind Score'},
-      }, plotlyConfig);
-    }
+        Plotly.newPlot(div, traces, {...plotlyLayout, title:{text:`${xVarName} vs RFind Score — ${idxName}`,font:{size:fs.titleSize}},
+          xaxis:{title:xVarName}, yaxis:{title:'RFind Score'}}, plotlyConfig);
+      }
 
-    // --- Combined scatter (all indexes as subplots) ---
-    if(nIdx>1){
-      const div=createPlotlyCard(container, L==='ja'?'Age vs RFind Score — 全インデックス':'Age vs RFind Score — All Indexes', 'scat_all');
-      div.style.height=(320*Math.ceil(nIdx/2))+'px';
+      // Combined scatter
+      if(nIdx>1){
+        const div=createPlotlyCard(container, `${xVarName} vs RFind Score — ${L==='ja'?'全インデックス':'All Indexes'}`, 'xvar_all');
+        div.style.height=(320*Math.ceil(nIdx/2))+'px';
+        const cols=2, nRows=Math.ceil(nIdx/cols);
+        const traces=[], layout={...plotlyLayout, margin:{t:30,r:10,b:40,l:50},
+          grid:{rows:nRows, columns:cols, pattern:'independent', roworder:'top to bottom'},
+          showlegend:true, legend:{orientation:'h', y:-0.02, x:0.5, xanchor:'center'}, annotations:[]};
 
-      const cols=2;
-      const nRows=Math.ceil(nIdx/cols);
-      const traces=[];
-      const layout={
-        ...plotlyLayout,
-        margin:{t:30,r:10,b:40,l:50},
-        grid:{rows:nRows, columns:cols, pattern:'independent', roworder:'top to bottom'},
-        showlegend:true,
-        legend:{orientation:'h', y:-0.02, x:0.5, xanchor:'center'},
-        annotations:[],
-      };
+        for(let i=0;i<nIdx;i++){
+          const idxName=res.selIdx[i].name;
+          const xaxis='x'+(i===0?'':(i+1)), yaxis='y'+(i===0?'':(i+1));
+          layout['xaxis'+(i===0?'':(i+1))]={title:{text:xVarName,font:{size:10}}};
+          layout['yaxis'+(i===0?'':(i+1))]={title:{text:'Score',font:{size:10}}};
+          const col=i%cols, row=Math.floor(i/cols);
+
+          const allPts=res.scores.filter(r=>getXVarData(r)!==null&&getXVarData(r)!==''&&!isNaN(parseFloat(getXVarData(r))));
+          const reg=linearRegression(allPts.map(r=>parseFloat(getXVarData(r))), allPts.map(r=>r.scores[i]));
+          layout.annotations.push({text:`<b>${idxName}</b> (R²=${reg.r2.toFixed(3)}, ${formatP(reg.p)})`,
+            showarrow:false, xref:'paper', yref:'paper', x:(col+0.5)/cols, y:1-row/nRows-0.02, font:{size:11}});
+
+          dxGroups.forEach(dx=>{
+            const pts=res.scores.filter(r=>r.dx===dx&&getXVarData(r)!==null&&getXVarData(r)!==''&&!isNaN(parseFloat(getXVarData(r))));
+            traces.push({x:pts.map(r=>parseFloat(getXVarData(r))), y:pts.map(r=>r.scores[i]),
+              mode:'markers', type:'scatter', name:dx, marker:{color:dxColor(dx), size:5, opacity:0.7},
+              xaxis, yaxis, showlegend:i===0, legendgroup:dx});
+          });
+          if(allPts.length>=3){
+            const xs=allPts.map(r=>parseFloat(getXVarData(r)));
+            const xMin=Math.min(...xs), xMax=Math.max(...xs);
+            traces.push({x:[xMin,xMax], y:[reg.intercept+reg.slope*xMin, reg.intercept+reg.slope*xMax],
+              mode:'lines', type:'scatter', showlegend:false, line:{color:'#334155', width:1.5, dash:'dot'}, xaxis, yaxis});
+          }
+        }
+        Plotly.newPlot(div, traces, layout, plotlyConfig);
+      }
+    } else {
+      // Categorical variable → Box plot grouped by category
+      const categories=[...new Set(res.scores.map(r=>getXVarData(r)).filter(v=>v!==null&&v!==undefined&&v!==''))];
+      categories.sort();
 
       for(let i=0;i<nIdx;i++){
         const idxName=res.selIdx[i].name;
-        const xaxis='x'+(i===0?'':(i+1));
-        const yaxis='y'+(i===0?'':(i+1));
+        const div=createPlotlyCard(container, `RFind Score by ${xVarName} — ${idxName}`, `xvar_${i}`, t('helpBox'));
 
-        layout['xaxis'+(i===0?'':(i+1))]={title:{text:'Age',font:{size:10}}};
-        layout['yaxis'+(i===0?'':(i+1))]={title:{text:'Score',font:{size:10}}};
-
-        const col=i%cols, row=Math.floor(i/cols);
-
-        // Regression for this index
-        const allPts=res.scores.filter(r=>r.age!==null);
-        const reg=linearRegression(allPts.map(r=>r.age), allPts.map(r=>r.scores[i]));
-
-        layout.annotations.push({
-          text:`<b>${idxName}</b> (R²=${reg.r2.toFixed(3)}, ${formatP(reg.p)})`,
-          showarrow:false, xref:'paper', yref:'paper',
-          x:(col+0.5)/cols, y:1-row/nRows-0.02, font:{size:11},
+        const traces=categories.map(cat=>{
+          const vals=res.scores.filter(r=>getXVarData(r)===cat).map(r=>r.scores[i]);
+          return {y:vals, type:'box', name:String(cat), boxpoints:'all', jitter:0.4, pointpos:0, line:{width:1.5}};
         });
 
-        dxGroups.forEach(dx=>{
-          const pts=res.scores.filter(r=>r.dx===dx&&r.age!==null);
-          traces.push({
-            x:pts.map(r=>r.age), y:pts.map(r=>r.scores[i]),
-            mode:'markers', type:'scatter', name:dx,
-            marker:{color:dxColor(dx), size:5, opacity:0.7},
-            xaxis, yaxis, showlegend:i===0, legendgroup:dx,
-          });
-        });
-
-        // Regression line per subplot
-        const xs=allPts.map(r=>r.age);
-        const xMin=Math.min(...xs), xMax=Math.max(...xs);
-        traces.push({
-          x:[xMin,xMax], y:[reg.intercept+reg.slope*xMin, reg.intercept+reg.slope*xMax],
-          mode:'lines', type:'scatter', showlegend:false,
-          line:{color:'#334155', width:1.5, dash:'dot'},
-          xaxis, yaxis,
-        });
+        Plotly.newPlot(div, traces, {...plotlyLayout, title:{text:`RFind Score by ${xVarName} — ${idxName}`,font:{size:fs.titleSize}},
+          yaxis:{title:'RFind Score'}, xaxis:{title:xVarName}}, plotlyConfig);
       }
-
-      Plotly.newPlot(div, traces, layout, plotlyConfig);
     }
   }
 }
