@@ -1,0 +1,2146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFind Web Tool v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2"></script>
+<style>
+:root {
+  --bg:#080d18; --surface:#0f1624; --s2:#162035; --s3:#1d2a45;
+  --border:#253451; --border2:#2e3f5c;
+  --accent:#38bdf8; --green:#4ade80; --warn:#fb923c; --red:#f87171; --purple:#a78bfa;
+  --text:#e2e8f0; --t2:#94a3b8; --t3:#64748b; --t4:#475569;
+  --fh:'Playfair Display',serif; --fb:'IBM Plex Sans',sans-serif; --fm:'IBM Plex Mono',monospace;
+  --radius:14px; --radius-sm:8px;
+  --transition:0.18s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.65;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 70% 45% at 15% 8%,rgba(56,189,248,.05) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 35% at 85% 85%,rgba(74,222,128,.04) 0%,transparent 55%);
+  pointer-events:none;z-index:0}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* HEADER */
+header{border-bottom:1px solid var(--border);padding:18px 0 16px;margin-bottom:32px}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-family:var(--fh);font-size:24px;font-weight:700;
+  background:linear-gradient(120deg,var(--accent),var(--green));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.3px}
+.logo-tag{font-family:var(--fm);font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-left:10px;vertical-align:middle}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.lang-wrap{display:flex;background:var(--s2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.lang-btn{padding:5px 13px;background:none;border:none;color:var(--t3);cursor:pointer;font-family:var(--fb);font-size:12px;font-weight:500;transition:all var(--transition)}
+.lang-btn.on{background:var(--accent);color:#000}
+.subtitle{color:var(--t2);font-size:13px;margin-top:8px;max-width:720px}
+
+/* STEP CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 30px;margin-bottom:18px;transition:border-color var(--transition)}
+.card.hi{border-color:rgba(56,189,248,.4)}
+.card-hdr{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+.step-dot{width:30px;height:30px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;font-weight:500;color:#000;flex-shrink:0}
+.step-dot.done{background:linear-gradient(135deg,var(--green),#22c55e)}
+.card-title{font-family:var(--fh);font-size:17px;font-weight:700}
+.card-sub{color:var(--t2);font-size:12px;margin-top:1px}
+
+/* UPLOAD */
+.drop{border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:22px 20px;text-align:center;cursor:pointer;position:relative;transition:all var(--transition)}
+.drop:hover,.drop.over{border-color:var(--accent);background:rgba(56,189,248,.03)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:24px;margin-bottom:6px}
+.drop-txt{color:var(--t2);font-size:13px}
+.drop-txt strong{color:var(--accent)}
+.drop-hint{font-size:11px;color:var(--t3);margin-top:3px}
+
+/* PREVIEW TABLE */
+.preview-wrap{margin-top:14px;display:none}
+.preview-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px}
+.preview-title{font-size:12px;font-weight:600;color:var(--t2)}
+.badge-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:11px;font-family:var(--fm);font-weight:500}
+.b-info{background:rgba(56,189,248,.12);color:var(--accent)}
+.b-up{background:rgba(74,222,128,.12);color:var(--green)}
+.b-dn{background:rgba(248,113,113,.12);color:var(--red)}
+.b-warn{background:rgba(251,146,60,.12);color:var(--warn)}
+.b-tot{background:var(--s3);color:var(--t2);font-size:10px}
+.preview-scroll{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+.mini-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.mini-tbl th{padding:6px 10px;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);text-align:left;background:var(--s2);position:sticky;top:0}
+.mini-tbl td{padding:5px 10px;border-bottom:1px solid rgba(37,52,81,.4);font-family:var(--fm)}
+.mini-tbl tr:last-child td{border-bottom:none}
+.mini-tbl tr:hover td{background:rgba(56,189,248,.03)}
+
+/* INDEX GRID */
+.idx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.idx-card{background:var(--s2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 12px;cursor:pointer;transition:all var(--transition);position:relative}
+.idx-card:hover{border-color:var(--border2)}
+.idx-card.on{border-color:var(--accent);background:rgba(56,189,248,.05)}
+.idx-card input{position:absolute;top:12px;right:12px;accent-color:var(--accent);width:14px;height:14px}
+.idx-name{font-family:var(--fm);font-size:12px;font-weight:500;color:var(--accent);margin-bottom:3px}
+.idx-bio{font-size:11px;color:var(--t2);line-height:1.45;margin-bottom:6px}
+.idx-genes{font-size:10px;color:var(--t3);font-family:var(--fm)}
+.idx-genes .ug{color:var(--green)}
+.idx-genes .dg{color:var(--red)}
+.idx-meta{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap}
+.idx-tag{padding:1px 6px;border-radius:3px;font-size:9px;background:var(--s3);color:var(--t3);font-family:var(--fm)}
+
+/* CUSTOM INDEX */
+.custom-drop{border:1px dashed var(--border2);border-radius:8px;padding:12px 16px;position:relative;cursor:pointer;transition:all var(--transition)}
+.custom-drop:hover{border-color:var(--t3)}
+.custom-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+
+/* RUN BUTTON */
+.run-btn{width:100%;padding:13px;background:linear-gradient(135deg,#0ea5e9,#38bdf8);border:none;border-radius:10px;
+  color:#000;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;transition:all var(--transition);letter-spacing:.02em}
+.run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 24px rgba(56,189,248,.28)}
+.run-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* PROGRESS */
+.progress-wrap{margin-top:14px;display:none}
+.progress-bar{height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.progress-fg{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .3s ease;width:0%}
+.progress-text{font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm)}
+
+/* RESULTS */
+.res-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-c{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:3px}
+.stat-val{font-family:var(--fm);font-size:20px;font-weight:500}
+
+/* RESULT TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--t3);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface)}
+thead th:hover{color:var(--t2)}
+tbody td{padding:7px 10px;border-bottom:1px solid rgba(37,52,81,.45);vertical-align:middle;white-space:nowrap}
+tbody tr:hover td{background:rgba(56,189,248,.025)}
+.mono{font-family:var(--fm)}
+
+/* SCORE CELL */
+.score-cell{font-family:var(--fm);font-size:11px;padding:3px 8px;border-radius:4px;display:inline-block;min-width:52px;text-align:center}
+
+/* DOWNLOAD BAR */
+.dl-bar{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.dl-btn{display:inline-flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;color:var(--t2);padding:8px 16px;cursor:pointer;font-size:12px;font-family:var(--fb);transition:all var(--transition)}
+.dl-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* FIGURE CARDS */
+.fig-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
+.fig-title{font-size:13px;font-weight:600;color:var(--t2);margin-bottom:10px}
+.fig-canvas-wrap{background:#fff;border-radius:6px;padding:8px;margin-bottom:10px}
+.fig-canvas-wrap canvas{width:100%;height:auto}
+.fig-dl{display:flex;gap:6px}
+.fig-dl button{padding:4px 10px;border:1px solid var(--border);border-radius:5px;background:var(--s3);color:var(--t3);
+  cursor:pointer;font-size:10px;font-family:var(--fm);transition:all var(--transition)}
+.fig-dl button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* MISC */
+.file-pill{display:inline-flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--border);
+  border-radius:6px;padding:6px 12px;font-family:var(--fm);font-size:11px;color:var(--green);margin-top:10px}
+hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
+
+@media(max-width:640px){
+  .idx-grid{grid-template-columns:1fr 1fr}
+  .res-stat-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="hdr">
+    <div>
+      <span class="logo">RFind</span>
+      <span class="logo-tag">Web Tool v3</span>
+    </div>
+    <div class="hdr-right">
+      <div class="lang-wrap">
+        <button class="lang-btn on" onclick="setLang('ja')">日本語</button>
+        <button class="lang-btn"   onclick="setLang('en')">English</button>
+      </div>
+    </div>
+  </div>
+  <p class="subtitle" id="subtitle"></p>
+  <div style="margin-top:10px">
+    <button onclick="loadDemo()" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'" id="demoBtn"></button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════
+     STEP 1 — FPKM Matrix Upload
+══════════════════════════════════════════════ -->
+<div class="card hi" id="s1">
+  <div class="card-hdr">
+    <div class="step-dot" id="dot1">1</div>
+    <div>
+      <div class="card-title" id="s1title"></div>
+      <div class="card-sub"  id="s1sub"></div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+    <span style="color:var(--accent)">Format:</span> 1列目 = 遺伝子名（Gene/Symbol）、2列目以降 = サンプルごとの発現量（FPKM/TPM）<br>
+    <span style="color:var(--t4)">例: Gene | Sample1 | Sample2 | ... の行列形式</span>
+    <button onclick="dlTemplate('fpkm')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+  </div>
+  <div class="drop" id="fpkmDrop"
+       ondragover="dov(event,'fpkmDrop')" ondragleave="dlv('fpkmDrop')" ondrop="dop(event,'fpkm')">
+    <input type="file" id="fpkmFile" accept=".csv,.tsv,.txt,.xlsx,.xls" onchange="loadFPKM(event)">
+    <div class="drop-icon">📂</div>
+    <div class="drop-txt"><strong id="clickUp1"></strong> <span id="orDrag1"></span></div>
+    <div class="drop-hint">CSV / TSV / Excel (.xlsx)</div>
+  </div>
+
+  <div class="preview-wrap" id="fpkmPrev">
+    <div class="preview-hdr">
+      <span class="preview-title" id="fpkmPrevTitle"></span>
+      <div class="badge-row">
+        <span class="badge b-info" id="bGenes"></span>
+        <span class="badge b-info" id="bSamples"></span>
+        <span class="badge b-up" id="bNorm" style="display:none"></span>
+      </div>
+    </div>
+    <div class="preview-scroll">
+      <table class="mini-tbl" id="fpkmPrevTbl">
+        <thead><tr id="fpkmPrevHead"></tr></thead>
+        <tbody id="fpkmPrevBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     STEP 2 — Demographics Upload
+══════════════════════════════════════════════ -->
+<div class="card" id="s2">
+  <div class="card-hdr">
+    <div class="step-dot" id="dot2">2</div>
+    <div>
+      <div class="card-title" id="s2title"></div>
+      <div class="card-sub"  id="s2sub"></div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+    <span style="color:var(--accent)">Format:</span> ID列（サンプル名）+ Dx列（診断群、"Control" 必須）を含むテーブル。列順不問。Age列があれば散布図に使用。<br>
+    <span style="color:var(--t4)">例: ID | Dx | Age | Sex | ...</span>
+    <button onclick="dlTemplate('demo')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+  </div>
+  <div class="drop" id="demoDrop"
+       ondragover="dov(event,'demoDrop')" ondragleave="dlv('demoDrop')" ondrop="dop(event,'demo')">
+    <input type="file" id="demoFile" accept=".csv,.tsv,.txt,.xlsx,.xls" onchange="loadDemo(event)">
+    <div class="drop-icon">📂</div>
+    <div class="drop-txt"><strong id="clickUp2"></strong> <span id="orDrag2"></span></div>
+    <div class="drop-hint">Excel (.xlsx) / CSV</div>
+  </div>
+
+  <div class="preview-wrap" id="demoPrev">
+    <div class="preview-hdr">
+      <span class="preview-title" id="demoPrevTitle"></span>
+      <div class="badge-row">
+        <span class="badge b-up" id="bCtrl"></span>
+        <span class="badge b-info" id="bMatch"></span>
+        <span class="badge b-warn" id="bMiss"></span>
+      </div>
+    </div>
+    <div class="preview-scroll">
+      <table class="mini-tbl" id="demoPrevTbl">
+        <thead><tr id="demoPrevHead"></tr></thead>
+        <tbody id="demoPrevBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     STEP 3 — Index Upload
+══════════════════════════════════════════════ -->
+<div class="card" id="s3">
+  <div class="card-hdr">
+    <div class="step-dot" id="dot3">3</div>
+    <div>
+      <div class="card-title" id="s3title"></div>
+      <div class="card-sub"  id="s3sub"></div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+    <span style="color:var(--accent)">Format:</span> Symbol列 + Fold Change列を含むテーブル。列順不問。FC形式（Ratio/Log2FC/SignedFC）は自動判定。<br>
+    <span style="color:var(--t4)">例: Symbol | Fold Change | P-Value(任意) | ...</span>
+    <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+  </div>
+  <div class="drop" id="idxDrop"
+       ondragover="dov(event,'idxDrop')" ondragleave="dlv('idxDrop')" ondrop="dop(event,'idx')">
+    <input type="file" id="idxFile" accept=".csv,.tsv,.txt,.xlsx,.xls" multiple onchange="loadIdxFiles(event)">
+    <div class="drop-icon">📂</div>
+    <div class="drop-txt"><strong id="clickUp3"></strong> <span id="orDrag3"></span></div>
+    <div class="drop-hint" id="idxHint">CSV / TSV / Excel — Symbol, Fold Change 形式（複数可）</div>
+  </div>
+
+  <div id="idxList" style="margin-top:12px"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     STEP 4 — Run
+══════════════════════════════════════════════ -->
+<div class="card" id="s4">
+  <div class="card-hdr">
+    <div class="step-dot" id="dot4">4</div>
+    <div>
+      <div class="card-title" id="s4title"></div>
+      <div class="card-sub"  id="s4sub"></div>
+    </div>
+  </div>
+  <button class="run-btn" id="runBtn" onclick="runRFind()" disabled>
+    <span id="runLbl"></span>
+  </button>
+  <button class="run-btn" id="cancelBtn" onclick="cancelRFind()" style="display:none;background:linear-gradient(135deg,#ef4444,#f87171);margin-top:8px">
+    &#9632; <span id="cancelLbl"></span>
+  </button>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fg" id="progressFg"></div></div>
+    <div class="progress-text" id="progressText"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     RESULTS
+══════════════════════════════════════════════ -->
+<div class="card hi" id="resCard" style="display:none">
+  <div class="card-hdr">
+    <div class="step-dot done">&#10003;</div>
+    <div>
+      <div class="card-title" id="resTitle"></div>
+      <div class="card-sub"  id="resSub"></div>
+    </div>
+  </div>
+
+  <div class="res-stat-grid" id="statGrid"></div>
+
+  <div class="tbl-wrap">
+    <table id="resTbl">
+      <thead><tr id="resHead"></tr></thead>
+      <tbody id="resBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Overlap genes detail panel -->
+  <div id="overlapPanel" style="display:none;margin-top:14px;background:var(--s2);border:1px solid var(--accent);border-radius:10px;padding:18px 22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <span style="font-size:14px;font-weight:600;color:var(--accent)" id="overlapTitle"></span>
+        <span style="font-size:11px;color:var(--t3);margin-left:10px" id="overlapSub"></span>
+      </div>
+      <button onclick="document.getElementById('overlapPanel').style.display='none'" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:16px">&times;</button>
+    </div>
+    <div id="overlapContent"></div>
+  </div>
+
+  <hr class="div">
+  <div id="figSection" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <span style="font-size:14px;font-weight:600;color:var(--t2)">Figures</span>
+      <button onclick="document.getElementById('figSettings').style.display=document.getElementById('figSettings').style.display==='none'?'':'none'" style="padding:4px 12px;border:1px solid var(--border2);border-radius:5px;background:none;color:var(--t3);cursor:pointer;font-size:11px;font-family:var(--fb)">Figure Settings</button>
+    </div>
+    <div id="figSettings" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:11px;color:var(--t2)">
+        <label>Width (px)<br><input id="figW" type="number" value="1000" min="400" max="4000" step="100" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        <label>Height (px)<br><input id="figH" type="number" value="1000" min="400" max="4000" step="100" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        <label>Scale (DPI)<br><select id="figScale" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"><option value="1">1x (72dpi)</option><option value="2" selected>2x (144dpi)</option><option value="3">3x (216dpi)</option><option value="4">4x (288dpi)</option></select></label>
+        <label>Font size<br><input id="figFontSize" type="number" value="14" min="8" max="30" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        <label>Title font<br><input id="figTitleSize" type="number" value="16" min="10" max="36" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        <label>Font family<br><select id="figFont" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"><option value="Arial">Arial</option><option value="Helvetica">Helvetica</option><option value="Times New Roman">Times New Roman</option><option value="IBM Plex Sans">IBM Plex Sans</option></select></label>
+        <label>Axis label X<br><input id="figXLabel" type="text" value="" placeholder="auto" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        <label>Axis label Y<br><input id="figYLabel" type="text" value="" placeholder="auto" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+        <label>Marker size<br><input id="figMarkerSize" type="number" value="7" min="2" max="20" style="width:100%;padding:4px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px"></label>
+      </div>
+      <div style="margin-top:10px">
+        <span style="font-size:10px;color:var(--t3)">Dx colors:</span>
+        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap" id="figColorInputs"></div>
+      </div>
+      <button onclick="applyFigSettings()" style="margin-top:10px;padding:5px 16px;border:1px solid var(--accent);border-radius:5px;background:none;color:var(--accent);cursor:pointer;font-size:11px;font-family:var(--fb)">Apply & Redraw</button>
+    </div>
+    <div id="figContainer"></div>
+  </div>
+
+  <hr class="div">
+  <div class="dl-bar">
+    <button class="dl-btn" onclick="dlExcel()">&#11015; <span id="dlLbl"></span></button>
+    <button class="dl-btn" onclick="copyMethods()">&#128203; <span id="methodsLbl"></span></button>
+  </div>
+  <div id="methodsBox" style="display:none;margin-top:12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px 18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:12px;font-weight:600;color:var(--t2)">Methods text</span>
+      <span id="methodsCopied" style="font-size:11px;color:var(--green);display:none">Copied!</span>
+    </div>
+    <div id="methodsText" style="font-size:12px;color:var(--t2);line-height:1.7;white-space:pre-wrap"></div>
+  </div>
+</div>
+
+
+<footer>
+  RFind Web Tool v3 &#8212; <span id="footNote"></span><br>
+  <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">Running Fisher (4-direction) &middot; All computation runs client-side</span>
+</footer>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   i18n
+══════════════════════════════════════════════════════ */
+const T = {
+  ja:{
+    subtitle:"FPKMマトリックスとDemographicsファイルをアップロードし、Running Fisher（4方向）でサンプルごとのRFindスコアを算出します。すべての処理はブラウザ上で完結します。",
+    s1title:"Step 1: 発現量マトリックス",
+    s1sub:"遺伝子 x サンプルの発現量マトリックス（CSV/Excel）をアップロードしてください。",
+    s2title:"Step 2: サンプル情報（Demographics）",
+    s2sub:"サンプルIDとDx（診断）列を含むファイルをアップロードしてください。Dx=\"Control\"のサンプルが基準になります。",
+    s3title:"Step 3: 参照インデックス（Gene Set）",
+    s3sub:"スコアリングに使う参照インデックスファイル（Symbol, Fold Change形式）をアップロードしてください（複数可）。",
+    s4title:"解析実行",
+    s4sub:"設定を確認して実行します。サンプル数 x インデックス数分のRunning Fisherを計算します。",
+    resTitle:"解析結果",
+    resSub:"サンプル x インデックスのRFindスコア行列です。",
+    clickUp1:"クリックしてアップロード", orDrag1:"またはドラッグ＆ドロップ",
+    clickUp2:"クリックしてアップロード", orDrag2:"またはドラッグ＆ドロップ",
+    clickUp3:"クリックしてアップロード", orDrag3:"またはドラッグ＆ドロップ（複数可）",
+    idxHint:"CSV / TSV / Excel — Symbol, Fold Change 形式（複数可）",
+    fpkmPrevTitle:"FPKMマトリックス（先頭5行5列）",
+    demoPrevTitle:"Demographics照合結果",
+    runLbl:"RFind 解析を実行",
+    runningLbl:"解析中...", cancelLbl:"解析を中止", demoBtn:"デモデータで試す",
+    methodsLbl:"Methods文を生成",
+    statSamples:"解析サンプル数", statIndexes:"インデックス数", statCtrl:"Controlサンプル数", statGenes:"共通遺伝子数",
+    dlLbl:"結果をExcelでダウンロード",
+    footNote:"本ツールはプロトタイプです。結果の解釈は慎重に行ってください。",
+    colSample:"サンプルID", colDx:"診断群",
+  },
+  en:{
+    subtitle:"Upload an FPKM matrix and Demographics file to compute per-sample RFind scores using Running Fisher (4-direction). All computation runs client-side.",
+    s1title:"Step 1: Expression Matrix",
+    s1sub:"Upload a gene x sample expression matrix (CSV/Excel).",
+    s2title:"Step 2: Sample Info (Demographics)",
+    s2sub:"Upload a file containing sample IDs and a Dx (diagnosis) column. Samples with Dx=\"Control\" will be used as the baseline.",
+    s3title:"Step 3: Reference Index (Gene Set)",
+    s3sub:"Upload reference index files (Symbol, Fold Change format). Multiple files supported.",
+    s4title:"Run Analysis",
+    s4sub:"Review settings and run. Running Fisher will be computed for each sample x index.",
+    resTitle:"Results",
+    resSub:"Sample x Index RFind score matrix.",
+    clickUp1:"Click to upload", orDrag1:"or drag & drop",
+    clickUp2:"Click to upload", orDrag2:"or drag & drop",
+    clickUp3:"Click to upload", orDrag3:"or drag & drop (multiple)",
+    idxHint:"CSV / TSV / Excel — Symbol, Fold Change format (multiple OK)",
+    fpkmPrevTitle:"FPKM Matrix (first 5 rows x 5 cols)",
+    demoPrevTitle:"Demographics matching result",
+    runLbl:"Run RFind Analysis",
+    runningLbl:"Running...", cancelLbl:"Cancel", demoBtn:"Try with demo data",
+    methodsLbl:"Generate Methods text",
+    statSamples:"Samples analyzed", statIndexes:"Indexes", statCtrl:"Control samples", statGenes:"Common genes",
+    dlLbl:"Download results as Excel",
+    footNote:"This tool is a prototype. Interpret results carefully.",
+    colSample:"Sample ID", colDx:"Diagnosis",
+  }
+};
+let L='ja';
+function t(k){ return T[L][k]||k }
+
+function applyTexts(){
+  const ids=['subtitle','s1title','s1sub','s2title','s2sub','s3title','s3sub','s4title','s4sub',
+    'resTitle','resSub','clickUp1','orDrag1','clickUp2','orDrag2','clickUp3','orDrag3','idxHint',
+    'runLbl','dlLbl','footNote','demoBtn','methodsLbl'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
+}
+function setLang(l){
+  L=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('on',(l==='ja'&&b.textContent==='日本語')||(l==='en'&&b.textContent==='English'));
+  });
+  applyTexts();
+}
+
+/* ══════════════════════════════════════════════════════
+   Uploaded indexes
+   Each: {id, name, genes:[{Symbol,FC}], nUp, nDn}
+══════════════════════════════════════════════════════ */
+let uploadedIndexes = [];
+
+const IDX_COLORS = ['#38bdf8','#4ade80','#fb923c','#a78bfa','#f472b6','#34d399','#facc15','#fb7185','#22d3ee','#a3e635'];
+
+/**
+ * Detect FC format:
+ *   pattern1: raw ratio (0 ~ +Inf) — all values positive, many near 1
+ *   pattern2: log2FC (-Inf ~ +Inf) — has negatives, |max| typically < 20
+ *   pattern3: signed FC (-Inf ~ -1, +1 ~ +Inf) — has negatives, no values in (-1, +1) except 0
+ */
+function detectFCFormat(values){
+  const hasNeg = values.some(v => v < 0);
+  if(!hasNeg){
+    // All positive → Ratio (FC = test/control)
+    // Log2FC would normally have negative values for downregulated genes
+    return 'ratio';
+  }
+  // Has negatives — distinguish pattern2 vs pattern3
+  // Pattern3: no values between -1 and +1 (exclusive)
+  const hasMidRange = values.some(v => v !== 0 && Math.abs(v) < 1);
+  if(hasMidRange){
+    // Values like -0.5, 0.3 exist → log2FC
+    return 'log2fc';
+  }
+  // No values in (-1,+1) → pattern3 (already signed FC)
+  return 'signedfc';
+}
+
+/** Convert FC value to signed FC (pattern3) based on detected format */
+function convertFC(fc, format){
+  if(format === 'ratio'){
+    // pattern1: 0~+Inf → signed FC
+    // fc > 1 → keep as is (UP), fc < 1 → -1/fc (DN), fc == 1 → 0 (no change)
+    if(fc <= 0) return 0;
+    if(fc < 1) return -1/fc;
+    return fc;
+  }
+  if(format === 'log2fc'){
+    // pattern2: log2FC → signed FC
+    // positive log2FC → 2^fc (UP), negative → -(2^|fc|) (DN)
+    if(fc > 0) return Math.pow(2, fc);
+    if(fc < 0) return -Math.pow(2, -fc);
+    return 0;
+  }
+  // pattern3: already signed FC, use as-is
+  return fc;
+}
+
+function parseIndexCSV(aoa){
+  const genes=[];
+
+  // Auto-detect header row (may have metadata rows before it)
+  let headerRowIdx=0;
+  const symPattern=/^(symbol|gene|genes|gene.?symbol|gene.?name|genename|geneid|gene.?id|probe|name)$/i;
+  const fcPattern=/^(fold.?change|fc|log.?fc|logfc|log2fc|log2.?fold.?change|fold_change|foldchange)$/i;
+
+  for(let r=0;r<Math.min(aoa.length,20);r++){
+    const row=aoa[r].map(h=>String(h).trim().replace(/^"|"$/g,''));
+    const hasSym=row.some(h=>symPattern.test(h));
+    const hasFC=row.some(h=>fcPattern.test(h));
+    if(hasSym&&hasFC){headerRowIdx=r;break}
+  }
+
+  const hdr=aoa[headerRowIdx].map(h=>String(h).trim().replace(/^"|"$/g,''));
+
+  // Find Symbol column (flexible naming, any position)
+  const symCol=hdr.findIndex(h=>symPattern.test(h));
+  // Find Fold Change column (flexible naming, any position)
+  const fcCol=hdr.findIndex(h=>fcPattern.test(h));
+
+  if(symCol<0||fcCol<0){
+    return {genes:[], error:symCol<0?'symbol':'fc', headers:hdr};
+  }
+
+  // First pass: collect raw FC values for format detection
+  const dataStart=headerRowIdx+1;
+  const rawFCs=[];
+  for(let i=dataStart;i<aoa.length;i++){
+    const fc=parseFloat(aoa[i][fcCol]);
+    if(!isNaN(fc)&&fc!==0) rawFCs.push(fc);
+  }
+  const fcFormat=detectFCFormat(rawFCs);
+
+  // Second pass: parse with conversion
+  let normCount=0;
+  for(let i=dataStart;i<aoa.length;i++){
+    const row=aoa[i];
+    const raw=String(row[symCol]).trim().toUpperCase();
+    const sym=normalizeGene(String(row[symCol]));
+    let fc=parseFloat(row[fcCol]);
+    if(!sym||isNaN(fc)||fc===0)continue;
+    fc=convertFC(fc, fcFormat);
+    if(fc===0)continue;
+    if(sym!==raw) normCount++;
+    genes.push({Symbol:sym, FC:fc});
+  }
+  return {genes, error:null, normCount, fcFormat};
+}
+
+function renderIdxList(){
+  const el=document.getElementById('idxList');
+  if(uploadedIndexes.length===0){el.innerHTML='';return}
+  const fmtLabel={ratio:'Ratio→SignedFC', log2fc:'Log2FC→SignedFC', signedfc:'SignedFC'};
+  el.innerHTML=uploadedIndexes.map((idx,i)=>{
+    const col=IDX_COLORS[i%IDX_COLORS.length];
+    const fmt=fmtLabel[idx.fcFormat]||'SignedFC';
+    return `<div class="file-pill" style="margin-right:8px;margin-bottom:6px;display:inline-flex;flex-wrap:wrap">
+      <span style="color:${col}">&#9632;</span>&nbsp;
+      <span style="color:${col}">${idx.name}</span>&nbsp;
+      <span style="color:var(--t3)">(UP:${idx.nUp} DN:${idx.nDn} / ${idx.genes.length} genes)</span>&nbsp;
+      <span style="color:var(--accent);font-size:10px">[${fmt}]</span>
+      ${idx.normCount>0?`&nbsp;<span style="color:var(--green);font-size:10px">[HGNC:${idx.normCount}]</span>`:''}
+      <span style="cursor:pointer;margin-left:8px;color:var(--t4)" onclick="removeIdx(${i})">&times;</span>
+    </div>`;
+  }).join('');
+}
+
+function removeIdx(i){
+  uploadedIndexes.splice(i,1);
+  renderIdxList();
+  updateRunBtn();
+}
+
+async function addIndexFromFile(file){
+  await ensureHGNC();
+  const ext=file.name.split('.').pop().toLowerCase();
+
+  // For Excel files: read all sheets, each as a separate index
+  if(ext==='xlsx'||ext==='xls'){
+    const buf=await readFileAsArrayBuffer(file);
+    const wb=XLSX.read(buf,{type:'array'});
+    const baseName=file.name.replace(/\.[^.]+$/,'');
+    let addedCount=0;
+
+    for(const sheetName of wb.SheetNames){
+      // Skip known non-index sheets
+      if(/^(platform.?info|readme|info|sheet1)$/i.test(sheetName)&&wb.SheetNames.length>1) continue;
+
+      const ws=wb.Sheets[sheetName];
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(aoa.length<2) continue;
+
+      const result=parseIndexCSV(aoa);
+      if(result.error||result.genes.length===0) continue;
+
+      const name=wb.SheetNames.length>1?sheetName:baseName;
+      const genes=result.genes;
+      uploadedIndexes.push({
+        id:name, name,
+        genes, nUp:genes.filter(g=>g.FC>0).length, nDn:genes.filter(g=>g.FC<0).length,
+        normCount:result.normCount||0, fcFormat:result.fcFormat||'signedfc'
+      });
+      addedCount++;
+    }
+
+    if(addedCount===0){
+      showError(L==='ja'
+        ?`${file.name}: 有効なインデックスシートが見つかりません。各シートにSymbol列とFold Change列が必要です。`
+        :`${file.name}: No valid index sheets found. Each sheet needs Symbol and Fold Change columns.`);
+      return;
+    }
+    clearError();
+    renderIdxList();
+    markDone('dot3');
+    updateRunBtn();
+    return;
+  }
+
+  // CSV/TSV: single file = single index
+  const aoa=await fileToAOA(file);
+  if(aoa.length<2){
+    showError(L==='ja'?`${file.name}: データが空です。`:`${file.name}: No data found.`);
+    return;
+  }
+  const result=parseIndexCSV(aoa);
+  if(result.error){
+    const missing=result.error==='symbol'?'Symbol/Gene':'Fold Change/FC';
+    showError(L==='ja'
+      ?`${file.name}: "${missing}" 列が見つかりません。\n検出されたヘッダー: ${result.headers.join(', ')}\nSymbol列（Gene, Symbol等）とFold Change列（FC, Fold Change等）が必要です。列の順番は問いません。`
+      :`${file.name}: "${missing}" column not found.\nHeaders found: ${result.headers.join(', ')}\nNeed a Symbol column (Gene, Symbol, etc.) and a Fold Change column (FC, Fold Change, etc.). Column order doesn't matter.`);
+    return;
+  }
+  if(result.genes.length===0){
+    showError(L==='ja'
+      ?`${file.name}: 有効な遺伝子データが見つかりません。`
+      :`${file.name}: No valid gene data found.`);
+    return;
+  }
+  clearError();
+  const name=file.name.replace(/\.[^.]+$/,'');
+  const genes=result.genes;
+  uploadedIndexes.push({id:name, name, genes,
+    nUp:genes.filter(g=>g.FC>0).length, nDn:genes.filter(g=>g.FC<0).length,
+    normCount:result.normCount||0, fcFormat:result.fcFormat||'signedfc'});
+  renderIdxList();
+  markDone('dot3');
+  updateRunBtn();
+}
+
+/* ══════════════════════════════════════════════════════
+   Global state
+══════════════════════════════════════════════════════ */
+let FPKM = null;   // {genes:[], samples:[], mat: Float64Array[genes x samples]}
+let DEMO = null;    // {rows:[{ID,Dx,...}], controlIds:Set, matchedIds:[], missedIds:[]}
+let lastRes = null;
+
+/* ══════════════════════════════════════════════════════
+   HGNC gene symbol normalization
+══════════════════════════════════════════════════════ */
+let HGNC_MAP = null;
+let ORTHO_MAP = null;
+let _hgncPromise = fetch('hgnc_map.json').then(r=>r.ok?r.json():null).catch(()=>null);
+let _orthoPromise = fetch('ortholog_map.json').then(r=>r.ok?r.json():null).catch(()=>null);
+
+
+async function ensureHGNC(){
+  if(!HGNC_MAP){
+    HGNC_MAP = (await _hgncPromise) || {};
+    const n=Object.keys(HGNC_MAP).length;
+    if(n>0) console.log(`HGNC map loaded: ${n} entries`);
+  }
+  if(!ORTHO_MAP){
+    ORTHO_MAP = (await _orthoPromise) || {};
+    const n=Object.keys(ORTHO_MAP).length;
+    if(n>0) console.log(`Ortholog map loaded: ${n} entries`);
+  }
+}
+
+function normalizeGene(sym){
+  const upper=sym.trim().toUpperCase();
+  if(!HGNC_MAP&&!ORTHO_MAP) return upper;
+  // 1. Try ortholog mapping first (mouse/rat → human)
+  if(ORTHO_MAP){
+    const ortho=ORTHO_MAP[upper];
+    if(ortho) return ortho;
+  }
+  // 2. Then HGNC alias → official symbol
+  if(HGNC_MAP){
+    return HGNC_MAP[upper] || upper;
+  }
+  return upper;
+}
+
+/* ══════════════════════════════════════════════════════
+   Drag / drop helpers
+══════════════════════════════════════════════════════ */
+function dov(e,id){e.preventDefault();document.getElementById(id).classList.add('over')}
+function dlv(id){document.getElementById(id).classList.remove('over')}
+function dop(e,type){
+  e.preventDefault();
+  const idMap={fpkm:'fpkmDrop',demo:'demoDrop',idx:'idxDrop'};
+  document.getElementById(idMap[type]).classList.remove('over');
+  if(type==='idx'){
+    const files=e.dataTransfer.files;
+    for(const f of files) addIndexFromFile(f);
+  } else {
+    const f=e.dataTransfer.files[0]; if(!f)return;
+    if(type==='fpkm') handleFPKMFile(f);
+    else handleDemoFile(f);
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   File reading helpers
+══════════════════════════════════════════════════════ */
+function readFileAsArrayBuffer(f){
+  return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsArrayBuffer(f)});
+}
+function readFileAsText(f){
+  return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(e.target.result);fr.onerror=rej;fr.readAsText(f)});
+}
+
+function parseSheetToAOA(file){
+  return readFileAsArrayBuffer(file).then(buf=>{
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    return XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  });
+}
+
+function parseCSVToAOA(text){
+  const lines=text.trim().split(/\r?\n/);
+  return lines.map(line=>{
+    // handle both comma and tab
+    const sep=line.includes('\t')?'\t':',';
+    return line.split(sep);
+  });
+}
+
+async function fileToAOA(file){
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='xlsx'||ext==='xls'){
+    return parseSheetToAOA(file);
+  } else {
+    const txt=await readFileAsText(file);
+    return parseCSVToAOA(txt);
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   STEP 1: FPKM Matrix
+══════════════════════════════════════════════════════ */
+function loadFPKM(e){const f=e.target.files[0];if(f)handleFPKMFile(f)}
+
+async function handleFPKMFile(file){
+  await ensureHGNC();
+  const aoa=await fileToAOA(file);
+
+  // Check: at least header + 1 data row, at least 2 columns
+  if(aoa.length<2||aoa[0].length<2){
+    showError(L==='ja'
+      ?'FPKMファイルが無効です。ヘッダー行＋データ行が必要で、最低2列（遺伝子名＋1サンプル）必要です。'
+      :'Invalid FPKM file. Need header + data rows, at least 2 columns (gene + 1 sample).');
+    return;
+  }
+
+  const header=aoa[0];
+  // Check: first column should be gene-like
+  const col0=String(header[0]).trim().toLowerCase();
+  const genePatterns=/^(gene|genes|geneid|gene.?id|symbol|gene.?symbol|gene.?name|genename|probe|probeid|ensembl|entrez|feature|row|name|id)$/i;
+  if(!genePatterns.test(col0)){
+    showError(L==='ja'
+      ?`1列目のヘッダーが遺伝子名列として認識できません（"${header[0]}"）。Gene, Symbol, GeneID などの名前にしてください。`
+      :`First column header "${header[0]}" not recognized as gene column. Use Gene, Symbol, GeneID, etc.`);
+    return;
+  }
+
+  const samples=header.slice(1).map(s=>String(s).trim());
+  // Check: sample names should not be empty
+  if(samples.some(s=>!s)){
+    showError(L==='ja'
+      ?'ヘッダー行に空のサンプル名があります。すべてのサンプル列に名前をつけてください。'
+      :'Header row has empty sample names. All sample columns need a name.');
+    return;
+  }
+
+  const genes=[];
+  const rawGenes=[];
+  const nS=samples.length;
+  const dataRows=[];
+  let nonNumericCount=0;
+
+  for(let i=1;i<aoa.length;i++){
+    const row=aoa[i];
+    const raw=String(row[0]).trim().toUpperCase();
+    const gene=normalizeGene(String(row[0]));
+    if(!gene)continue;
+    genes.push(gene);
+    rawGenes.push(raw);
+    const vals=new Float64Array(nS);
+    for(let j=0;j<nS;j++){
+      const v=parseFloat(row[j+1]);
+      if(isNaN(v)) nonNumericCount++;
+      vals[j]=isNaN(v)?0:v;
+    }
+    dataRows.push(vals);
+  }
+
+  if(genes.length===0){
+    showError(L==='ja'?'遺伝子データが見つかりません。':'No gene data found.');
+    return;
+  }
+
+  // Warn if many non-numeric values
+  const totalCells=genes.length*nS;
+  if(nonNumericCount>totalCells*0.5){
+    showError(L==='ja'
+      ?`発現量の50%以上が数値ではありません（${nonNumericCount}/${totalCells}セル）。ファイル形式を確認してください。`
+      :`Over 50% of expression values are non-numeric (${nonNumericCount}/${totalCells} cells). Check file format.`);
+    return;
+  }
+
+  // Store as column-major for efficient sample access
+  const nG=genes.length;
+  const mat=new Float64Array(nG*nS);
+  for(let g=0;g<nG;g++){
+    for(let s=0;s<nS;s++){
+      mat[g*nS+s]=dataRows[g][s];
+    }
+  }
+
+  const normCount=genes.filter((g,i)=>g!==rawGenes[i]).length;
+  FPKM={genes,samples,mat,nG,nS,normCount,fileName:file.name};
+
+  // Update UI
+  clearError();
+  showPill('s1',file.name);
+  markDone('dot1');
+  showFPKMPreview();
+  matchDemoIfReady();
+  updateRunBtn();
+}
+
+function showFPKMPreview(){
+  if(!FPKM)return;
+  const w=document.getElementById('fpkmPrev');
+  w.style.display='';
+  document.getElementById('fpkmPrevTitle').textContent=t('fpkmPrevTitle');
+  document.getElementById('bGenes').textContent=`Genes: ${FPKM.nG}`;
+  document.getElementById('bSamples').textContent=`Samples: ${FPKM.nS}`;
+  const normEl=document.getElementById('bNorm');
+  if(FPKM.normCount>0){
+    normEl.style.display='';
+    normEl.textContent=L==='ja'?`HGNC正規化: ${FPKM.normCount}`:`HGNC normalized: ${FPKM.normCount}`;
+  } else {
+    normEl.style.display='none';
+  }
+
+  const nR=Math.min(5,FPKM.nG), nC=Math.min(5,FPKM.nS);
+  const hd=document.getElementById('fpkmPrevHead');
+  hd.innerHTML='<th>Gene</th>'+FPKM.samples.slice(0,nC).map(s=>`<th>${s}</th>`).join('')+(FPKM.nS>nC?'<th>...</th>':'');
+  const bd=document.getElementById('fpkmPrevBody');
+  let html='';
+  for(let g=0;g<nR;g++){
+    html+='<tr><td class="mono">'+FPKM.genes[g]+'</td>';
+    for(let s=0;s<nC;s++){
+      html+='<td class="mono" style="color:var(--t3)">'+FPKM.mat[g*FPKM.nS+s].toFixed(2)+'</td>';
+    }
+    if(FPKM.nS>nC)html+='<td style="color:var(--t4)">...</td>';
+    html+='</tr>';
+  }
+  if(FPKM.nG>nR) html+='<tr><td colspan="'+(nC+2)+'" style="color:var(--t4);text-align:center">... +'+(FPKM.nG-nR)+' genes</td></tr>';
+  bd.innerHTML=html;
+}
+
+/* ══════════════════════════════════════════════════════
+   STEP 2: Demographics
+══════════════════════════════════════════════════════ */
+function loadDemo(e){const f=e.target.files[0];if(f)handleDemoFile(f)}
+
+async function handleDemoFile(file){
+  const aoa=await fileToAOA(file);
+  if(aoa.length<2){
+    showError(L==='ja'
+      ?'Demographicsファイルが無効です。ヘッダー行＋データ行が必要です。'
+      :'Invalid Demographics file. Need header + data rows.');
+    return;
+  }
+
+  const header=aoa[0].map(h=>String(h).trim());
+
+  // Find ID column by header name (any position)
+  let idCol=header.findIndex(h=>/^(id|sample.?id|sampleid|sample.?name|samplename|subject|subject.?id|subjectid|brnum|sample)$/i.test(h));
+
+  // Find Dx column by header name (any position)
+  let dxCol=header.findIndex(h=>/^(dx|diagnosis|diag|group|condition)$/i.test(h));
+  if(dxCol<0) dxCol=header.findIndex(h=>/dx|diagnosis|diag/i.test(h));
+
+  if(idCol<0&&dxCol<0){
+    showError(L==='ja'
+      ?`サンプルID列もDx列も見つかりません。\nID列: "ID", "SampleID", "Sample", "Subject" 等\nDx列: "Dx", "Diagnosis", "Group" 等\n列の順番は問いません。\n検出されたヘッダー: ${header.join(', ')}`
+      :`Cannot find ID or Dx column.\nID: "ID", "SampleID", "Sample", "Subject", etc.\nDx: "Dx", "Diagnosis", "Group", etc.\nColumn order doesn't matter.\nHeaders found: ${header.join(', ')}`);
+    return;
+  }
+  if(idCol<0){
+    showError(L==='ja'
+      ?`サンプルID列が見つかりません。"ID", "SampleID", "Sample", "Subject" 等のヘッダーが必要です。列の順番は問いません。\n検出されたヘッダー: ${header.join(', ')}`
+      :`Cannot find sample ID column. Need "ID", "SampleID", "Sample", "Subject", etc. Column order doesn't matter.\nHeaders found: ${header.join(', ')}`);
+    return;
+  }
+  if(dxCol<0){
+    showError(L==='ja'
+      ?`Dx（診断）列が見つかりません。"Dx", "Diagnosis", "Group" 等のヘッダーが必要です。列の順番は問いません。\n検出されたヘッダー: ${header.join(', ')}`
+      :`Cannot find Dx column. Need "Dx", "Diagnosis", "Group", etc. Column order doesn't matter.\nHeaders found: ${header.join(', ')}`);
+    return;
+  }
+
+  const rows=[];
+  for(let i=1;i<aoa.length;i++){
+    const r=aoa[i];
+    const id=String(r[idCol]).trim();
+    const dx=String(r[dxCol]).trim();
+    if(!id)continue;
+    rows.push({ID:id, Dx:dx, _row:r, _header:header});
+  }
+
+  if(rows.length===0){
+    showError(L==='ja'?'有効なデータ行がありません。':'No valid data rows found.');
+    return;
+  }
+
+  // Check: at least one Control
+  const controlIds=new Set(rows.filter(r=>r.Dx==='Control').map(r=>r.ID));
+  if(controlIds.size===0){
+    const dxVals=[...new Set(rows.map(r=>r.Dx))];
+    // Check if there's a close match
+    const similar=dxVals.filter(d=>/^(con|ctrl|ctl|control|normal|healthy|hc|nc)$/i.test(d));
+    const suggestJa=similar.length>0
+      ?`\n\n"${similar.join('", "')}" を "Control"（先頭大文字、完全一致）に変更してください。`
+      :'\n\nDx列に正確に "Control" と記載されたサンプルが必要です。大文字小文字は完全一致で判定します。';
+    const suggestEn=similar.length>0
+      ?`\n\nDid you mean "${similar.join('", "')}"? Change to exactly "Control" (case-sensitive).`
+      :'\n\nDx column must contain exactly "Control" (case-sensitive).';
+    showError(L==='ja'
+      ?`Dx列に "Control" が見つかりません。\n検出されたDx値: ${dxVals.join(', ')}${suggestJa}`
+      :`No "Control" found in Dx column.\nDx values found: ${dxVals.join(', ')}${suggestEn}`);
+    return;
+  }
+
+  // Detect Age column
+  const ageCol=header.findIndex(h=>/^(age|age.?at.?death|agedeath|age.?death|age.?at.?onset|ageonset)$/i.test(h));
+
+  // Detect extra demographic columns (all columns except ID and Dx)
+  const extraCols=header.map((h,i)=>i).filter(i=>i!==idCol&&i!==dxCol);
+
+  DEMO={rows,controlIds,allIds:rows.map(r=>r.ID),matchedIds:[],missedIds:[],header,idCol,dxCol,ageCol,extraCols,fileName:file.name};
+
+  clearError();
+  showPill('s2',file.name);
+  matchDemoIfReady();
+  updateRunBtn();
+}
+
+function matchDemoIfReady(){
+  if(!FPKM||!DEMO)return;
+
+  const fpkmSet=new Set(FPKM.samples);
+  DEMO.matchedIds=DEMO.allIds.filter(id=>fpkmSet.has(id));
+  DEMO.missedIds=DEMO.allIds.filter(id=>!fpkmSet.has(id));
+
+  // Check: at least 1 matched sample
+  if(DEMO.matchedIds.length===0){
+    const demoSample3=DEMO.allIds.slice(0,5).join(', ');
+    const fpkmSample3=FPKM.samples.slice(0,5).join(', ');
+    // Check if partial match exists (suggest trimming/prefix issues)
+    const demoFirst=DEMO.allIds[0]||'', fpkmFirst=FPKM.samples[0]||'';
+    const hint=demoFirst.includes(fpkmFirst)||fpkmFirst.includes(demoFirst)
+      ?(L==='ja'?'\n\n部分一致するIDがあります。接頭辞/接尾辞の違いが原因かもしれません。':'\n\nPartial matches found. Check for prefix/suffix differences.')
+      :(L==='ja'?'\n\nIDの命名規則が完全に異なっています。同じデータセットのファイルか確認してください。':'\n\nID formats appear completely different. Ensure files are from the same dataset.');
+    showError(L==='ja'
+      ?`FPKMとDemographicsのサンプルIDが1件も一致しません。\n\nDemographics側 (${DEMO.allIds.length}件): ${demoSample3} ...\nFPKM側 (${FPKM.samples.length}件): ${fpkmSample3} ...${hint}`
+      :`No sample IDs match between FPKM and Demographics.\n\nDemographics (${DEMO.allIds.length}): ${demoSample3} ...\nFPKM (${FPKM.samples.length}): ${fpkmSample3} ...${hint}`);
+    document.getElementById('demoPrev').style.display='none';
+    return;
+  }
+
+  // Check: at least 1 matched Control
+  const matchedCtrl=DEMO.matchedIds.filter(id=>DEMO.controlIds.has(id));
+  if(matchedCtrl.length===0){
+    showError(L==='ja'
+      ?`FPKMに存在するControlサンプルが0件です。Demographicsに "Control" と記載されたサンプルのIDがFPKMのヘッダーに含まれているか確認してください。`
+      :`No Control samples found in FPKM. Check that Control sample IDs in Demographics match FPKM column headers.`);
+    document.getElementById('demoPrev').style.display='none';
+    return;
+  }
+
+  clearError();
+  markDone('dot2');
+
+  const w=document.getElementById('demoPrev');
+  w.style.display='';
+  document.getElementById('demoPrevTitle').textContent=t('demoPrevTitle');
+  document.getElementById('bCtrl').textContent=`Control: ${matchedCtrl.length}`;
+  document.getElementById('bMatch').textContent=`Matched: ${DEMO.matchedIds.length} / ${DEMO.allIds.length}`;
+  document.getElementById('bMiss').textContent=DEMO.missedIds.length>0
+    ?(L==='ja'?`不一致: ${DEMO.missedIds.length}`:`Missing: ${DEMO.missedIds.length}`):'';
+
+  // Show matched samples grouped by Dx
+  const dxGroups={};
+  DEMO.rows.forEach(r=>{
+    if(!DEMO.matchedIds.includes(r.ID))return;
+    if(!dxGroups[r.Dx])dxGroups[r.Dx]=[];
+    dxGroups[r.Dx].push(r.ID);
+  });
+
+  const hd=document.getElementById('demoPrevHead');
+  hd.innerHTML='<th>Dx</th><th>N</th><th>Sample IDs (first 5)</th>';
+  const bd=document.getElementById('demoPrevBody');
+  bd.innerHTML=Object.entries(dxGroups).map(([dx,ids])=>{
+    const isCtrl=dx==='Control';
+    return `<tr>
+      <td class="mono" style="color:${isCtrl?'var(--green)':'var(--t2)'}">${dx}${isCtrl?' (Baseline)':''}</td>
+      <td class="mono">${ids.length}</td>
+      <td class="mono" style="color:var(--t3);font-size:10px">${ids.slice(0,5).join(', ')}${ids.length>5?' ...':''}</td>
+    </tr>`;
+  }).join('');
+
+  // Show missing IDs if any
+  if(DEMO.missedIds.length>0){
+    bd.innerHTML+=`<tr>
+      <td class="mono" style="color:var(--warn)">&#9888; ${L==='ja'?'不一致（除外）':'Missing (excluded)'}</td>
+      <td class="mono" style="color:var(--warn)">${DEMO.missedIds.length}</td>
+      <td class="mono" style="color:var(--t4);font-size:10px">${DEMO.missedIds.slice(0,5).join(', ')}${DEMO.missedIds.length>5?' ...':''}</td>
+    </tr>`;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   Index file upload (multiple)
+══════════════════════════════════════════════════════ */
+function loadIdxFiles(e){
+  const files=e.target.files;
+  for(const f of files) addIndexFromFile(f);
+}
+
+/* ══════════════════════════════════════════════════════
+   UI helpers
+══════════════════════════════════════════════════════ */
+function showPill(cardId,name){
+  const card=document.getElementById(cardId);
+  card.querySelector('.file-pill')?.remove();
+  const pill=document.createElement('div');pill.className='file-pill';pill.innerHTML=`📄 ${name}`;
+  card.appendChild(pill);
+}
+function markDone(dotId){
+  const d=document.getElementById(dotId);
+  d.textContent='✓';d.classList.add('done');
+}
+function showError(msg){
+  clearError();
+  const div=document.createElement('div');
+  div.id='errorBox';
+  div.style.cssText='background:rgba(248,113,113,.1);border:1px solid var(--red);border-radius:8px;padding:14px 18px;margin:14px 0;color:var(--red);font-size:13px;white-space:pre-wrap;line-height:1.6';
+  div.textContent=msg;
+  // Insert after the last .card that is visible
+  const cards=document.querySelectorAll('.card');
+  let target=cards[cards.length-1];
+  for(const c of cards){if(c.querySelector('.file-pill'))target=c}
+  target.after(div);
+}
+function clearError(){
+  document.getElementById('errorBox')?.remove();
+}
+function updateRunBtn(){
+  document.getElementById('runBtn').disabled=!(FPKM&&DEMO&&DEMO.matchedIds.length>0&&uploadedIndexes.length>0);
+}
+
+/* ══════════════════════════════════════════════════════
+   Hypergeometric distribution (phyper upper tail)
+   P(X >= k) where X ~ Hypergeometric(N, K, n)
+══════════════════════════════════════════════════════ */
+
+// Log-factorial with memoization
+const _lf=[0];
+function logFact(n){
+  if(n<0)return 0;
+  while(_lf.length<=n) _lf.push(_lf[_lf.length-1]+Math.log(_lf.length));
+  return _lf[n];
+}
+
+// Log of binomial coefficient C(n,k)
+function logChoose(n,k){
+  if(k<0||k>n)return -Infinity;
+  return logFact(n)-logFact(k)-logFact(n-k);
+}
+
+// Hypergeometric PMF: P(X=k | N, K, n)
+function hyperPMF(k, N, K, n){
+  if(k<0||k>Math.min(K,n)||k<Math.max(0,n+K-N))return 0;
+  return Math.exp(logChoose(K,k)+logChoose(N-K,n-k)-logChoose(N,n));
+}
+
+// Upper tail: P(X >= k)
+function phyperUpper(k, N, K, n){
+  if(K<=0||n<=0)return 1;
+  if(k<=0)return 1;
+  let p=0;
+  const maxK=Math.min(K,n);
+  if(k>maxK)return 0;
+  for(let i=k;i<=maxK;i++){
+    p+=hyperPMF(i,N,K,n);
+  }
+  return Math.min(p,1);
+}
+
+/* ══════════════════════════════════════════════════════
+   Running Fisher (JS port of R script)
+══════════════════════════════════════════════════════ */
+
+const CLIP_LIMIT = 300;
+const DEFAULT_P = 17317;
+
+/**
+ * running_fisher(b1, b2, P, clipLimit)
+ *
+ * b1, b2: arrays of {Symbol: string(uppercase), FC: number}
+ * P: universe size
+ *
+ * Returns: {upup, updown, downup, downdown, total}
+ *   each: {score, pval, overlap, bestM}
+ */
+function runningFisher(b1, b2, P, clipLimit, returnGenes){
+  clipLimit = clipLimit || CLIP_LIMIT;
+
+  // Deduplicate and format — keep original Symbol for gene list output
+  function formatGenes(arr){
+    const seen=new Set();
+    const out=[];
+    arr.forEach(g=>{
+      const s=g.Symbol.toLowerCase();
+      if(!seen.has(s)&&g.FC!==0){seen.add(s);out.push({sym:s,fc:g.FC,origSym:g.Symbol})}
+    });
+    return out;
+  }
+
+  const g1=formatGenes(b1);
+  const g2=formatGenes(b2);
+
+  // Rank by FC for a given direction
+  function rankFC(genes,dir){
+    const filtered=genes.filter(g=>dir==='up'?g.fc>0:g.fc<0);
+    filtered.sort((a,b)=>dir==='up'?b.fc-a.fc:a.fc-b.fc);
+    return filtered;
+  }
+
+  function fisherBidirectional(dir1,dir2){
+    const ranked1=rankFC(g1,dir1);
+    const ranked2=rankFC(g2,dir2);
+    if(ranked1.length===0||ranked2.length===0) return {score:0,pval:1,overlap:0,bestM:0,genes:[]};
+
+    const K1=ranked2.length;
+    const K2=ranked1.length;
+
+    const set2=new Set(ranked2.map(g=>g.sym));
+    const set1=new Set(ranked1.map(g=>g.sym));
+
+    let cum1=0, p1=1, m1=0;
+    for(let i=0;i<ranked1.length;i++){
+      if(!set2.has(ranked1[i].sym)) continue;
+      cum1++;
+      const p=phyperUpper(cum1, P, K1, i+1);
+      if(p<p1){p1=p;m1=i+1}
+    }
+
+    let cum2=0, p2=1, m2=0;
+    for(let i=0;i<ranked2.length;i++){
+      if(!set1.has(ranked2[i].sym)) continue;
+      cum2++;
+      const p=phyperUpper(cum2, P, K2, i+1);
+      if(p<p2){p2=p;m2=i+1}
+    }
+
+    const meanLogP=(-Math.log10(Math.max(p1,1e-300))+-Math.log10(Math.max(p2,1e-300)))/2;
+
+    // Collect overlap genes (with FC from both sides)
+    let overlapGenes=[];
+    if(returnGenes){
+      const map2={};
+      ranked2.forEach(g=>{map2[g.sym]=g});
+      ranked1.forEach(g=>{
+        if(set2.has(g.sym)){
+          overlapGenes.push({symbol:g.origSym, fc_index:g.fc, fc_sample:map2[g.sym].fc});
+        }
+      });
+      overlapGenes.sort((a,b)=>Math.abs(b.fc_sample)-Math.abs(a.fc_sample));
+    }
+    const overlapN=(() => {let n=0;set1.forEach(s=>{if(set2.has(s))n++});return n})();
+
+    return {
+      score: meanLogP,
+      pval: Math.pow(10, -meanLogP),
+      overlap: overlapN,
+      bestM: Math.round((m1+m2)/2),
+      genes: overlapGenes,
+    };
+  }
+
+  const directions = [
+    {name:'upup',     d1:'up',  d2:'up',   sign: 1},
+    {name:'updown',   d1:'up',  d2:'down', sign:-1},
+    {name:'downup',   d1:'down',d2:'up',   sign:-1},
+    {name:'downdown', d1:'down',d2:'down', sign: 1},
+  ];
+
+  const result = {};
+  let totalScore = 0;
+
+  directions.forEach(d=>{
+    const r = fisherBidirectional(d.d1, d.d2);
+    let rawScore = -Math.log10(Math.max(r.pval, 1e-300)) * d.sign;
+    if(isNaN(rawScore)||!isFinite(rawScore)) rawScore = isFinite(rawScore)?rawScore:Math.sign(rawScore)*clipLimit;
+    if(isNaN(rawScore)) rawScore = 0;
+    rawScore = Math.max(-clipLimit, Math.min(rawScore, clipLimit));
+    result[d.name] = {score: rawScore, pval: r.pval, overlap: r.overlap, bestM: r.bestM, genes: r.genes};
+    totalScore += rawScore;
+  });
+
+  totalScore = Math.max(-clipLimit, Math.min(totalScore, clipLimit));
+  result.total = totalScore;
+
+  return result;
+}
+
+/* ══════════════════════════════════════════════════════
+   FC computation (port of R compute_fold_change)
+══════════════════════════════════════════════════════ */
+const THRESHOLD_FC = 1.2;
+
+/**
+ * Compute fold-change for one sample vs control mean
+ * Returns array of {Symbol, FC} (filtered, signed)
+ */
+function computeSampleFC(geneIdx, fpkm, controlMean){
+  // geneIdx: index into FPKM.genes
+  // fpkm: FPKM value for this sample
+  // controlMean: control mean for this gene
+  if(controlMean===0||isNaN(controlMean)) return null;
+  let fc = fpkm / controlMean;
+  if(isNaN(fc)||!isFinite(fc)) return null;
+  // Threshold: |FC| < 1.2 → NA (both sides of 1)
+  if(fc > 1/THRESHOLD_FC && fc < THRESHOLD_FC) return null;
+  // FC <= 1 → -1/FC
+  if(fc <= 1){
+    fc = -1/fc;
+    if(!isFinite(fc)) return null;
+  }
+  return fc;
+}
+
+/* ══════════════════════════════════════════════════════
+   Main RFind execution
+══════════════════════════════════════════════════════ */
+let _cancelFlag=false;
+
+function cancelRFind(){
+  _cancelFlag=true;
+  document.getElementById('cancelBtn').style.display='none';
+  document.getElementById('progressText').textContent=L==='ja'?'中止しています...':'Cancelling...';
+}
+
+async function runRFind(){
+  _cancelFlag=false;
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true;
+  document.getElementById('runLbl').innerHTML=`<span class="spinner"></span>${t('runningLbl')}`;
+  const cancelBtn=document.getElementById('cancelBtn');
+  cancelBtn.style.display='';
+  document.getElementById('cancelLbl').textContent=t('cancelLbl');
+  const pw=document.getElementById('progressWrap');
+  pw.style.display='';
+
+  // Get uploaded indexes
+  const selIdx=uploadedIndexes;
+
+  if(selIdx.length===0){
+    showError(L==='ja'?'インデックスを1つ以上アップロードしてください。':'Upload at least one index.');
+    btn.disabled=false;document.getElementById('cancelBtn').style.display='none';pw.style.display='none';return;
+  }
+
+  // Get matched non-control sample IDs and control IDs
+  const controlIds=DEMO.matchedIds.filter(id=>DEMO.controlIds.has(id));
+  const allMatchedIds=DEMO.matchedIds;
+
+  // Build sample index lookup
+  const sampleIdxMap={};
+  FPKM.samples.forEach((s,i)=>sampleIdxMap[s]=i);
+
+  // Build gene index lookup
+  const geneIdxMap={};
+  FPKM.genes.forEach((g,i)=>geneIdxMap[g]=i);
+
+  // Compute control mean FPKM for each gene
+  const controlColIdxs=controlIds.map(id=>sampleIdxMap[id]).filter(i=>i!==undefined);
+  const controlMean=new Float64Array(FPKM.nG);
+  for(let g=0;g<FPKM.nG;g++){
+    let sum=0, cnt=0;
+    for(const ci of controlColIdxs){
+      const v=FPKM.mat[g*FPKM.nS+ci];
+      if(!isNaN(v)){sum+=v;cnt++}
+    }
+    controlMean[g]=cnt>0?sum/cnt:0;
+  }
+
+  // For each index, find common genes between index and FPKM
+  const indexInfo=selIdx.map(idx=>{
+    const idxGeneSet=new Set(idx.genes.map(g=>g.Symbol));
+    const commonGenes=FPKM.genes.filter(g=>idxGeneSet.has(g));
+    // Build b1 (reference) filtered to common genes
+    const b1=idx.genes.filter(g=>commonGenes.includes(g.Symbol));
+    return {idx, commonGenes, b1};
+  });
+
+  // Compute scores: sample x index
+  const sampleIds = allMatchedIds;
+  const nSamples = sampleIds.length;
+  const nIdx = selIdx.length;
+  const scores = []; // [{sampleId, dx, scores:[...]}]
+
+  const totalWork = nSamples * nIdx;
+  let doneWork = 0;
+
+  // Use setTimeout chunks to avoid blocking UI
+  function updateProgress(done, total){
+    const pct = Math.round(done/total*100);
+    document.getElementById('progressFg').style.width=pct+'%';
+    document.getElementById('progressText').textContent=`${done}/${total} (${pct}%)`;
+  }
+
+  // Process in batches
+  // P = commonGenes.length per index (Illumina spec: P1∩P2)
+
+  await new Promise(resolve=>{
+    let sIdx=0;
+
+    function processBatch(){
+      const batchEnd=Math.min(sIdx+2, nSamples); // 2 samples per batch
+
+      for(;sIdx<batchEnd;sIdx++){
+        const sid=sampleIds[sIdx];
+        const sColIdx=sampleIdxMap[sid];
+        const dxRow=DEMO.rows.find(r=>r.ID===sid);
+        const dx=dxRow?dxRow.Dx:'';
+
+        const sampleScores=[];
+
+        for(let iIdx=0;iIdx<nIdx;iIdx++){
+          const info=indexInfo[iIdx];
+
+          // Build b2 (sample FC) for common genes
+          const b2=[];
+          for(const gene of info.commonGenes){
+            const gIdx=geneIdxMap[gene];
+            if(gIdx===undefined)continue;
+            const fpkmVal=FPKM.mat[gIdx*FPKM.nS+sColIdx];
+            const fc=computeSampleFC(gIdx, fpkmVal, controlMean[gIdx]);
+            if(fc!==null){
+              b2.push({Symbol:gene, FC:fc});
+            }
+          }
+
+          let score=0;
+          if(b2.length>=5){
+            const rf=runningFisher(info.b1, b2, info.commonGenes.length, CLIP_LIMIT);
+            score=rf.total;
+          }
+          sampleScores.push(score);
+          doneWork++;
+        }
+
+        const age=(DEMO.ageCol>=0&&dxRow)?parseFloat(dxRow._row[DEMO.ageCol]):null;
+        scores.push({sampleId:sid, dx, scores:sampleScores, demoRow:dxRow, age:isNaN(age)?null:age});
+      }
+
+      updateProgress(doneWork, totalWork);
+
+      if(_cancelFlag){
+        resolve('cancelled');
+      } else if(sIdx<nSamples){
+        setTimeout(processBatch, 0);
+      } else {
+        resolve('done');
+      }
+    }
+
+    processBatch();
+  });
+
+  // Cleanup UI
+  cancelBtn.style.display='none';
+  btn.disabled=false;
+  document.getElementById('runLbl').textContent=t('runLbl');
+  pw.style.display='none';
+
+  if(_cancelFlag){
+    document.getElementById('progressText').textContent=L==='ja'?'中止しました':'Cancelled';
+    return;
+  }
+
+  // Build results
+  lastRes = {
+    selIdx,
+    scores,
+    controlCount: controlIds.length,
+    commonGenesPerIdx: indexInfo.map(i=>i.commonGenes.length),
+    hasAge: DEMO.ageCol>=0,
+  };
+
+  renderResults(lastRes);
+}
+
+/* ══════════════════════════════════════════════════════
+   Render Results
+══════════════════════════════════════════════════════ */
+function scoreColor(v){
+  // Blue-white-red diverging: negative=blue, 0=dark, positive=red/green
+  const abs=Math.min(Math.abs(v),50);
+  const intensity=Math.min(abs/20, 1);
+  if(v>0){
+    const r=Math.round(74+intensity*100);
+    const g=Math.round(222-intensity*80);
+    const b=Math.round(128-intensity*60);
+    return `rgba(${r},${g},${b},${0.15+intensity*0.35})`;
+  } else if(v<0){
+    const r=Math.round(248-intensity*60);
+    const g=Math.round(113-intensity*50);
+    const b=Math.round(113+intensity*40);
+    return `rgba(${r},${g},${b},${0.15+intensity*0.35})`;
+  }
+  return 'transparent';
+}
+
+function renderResults(res){
+  const card=document.getElementById('resCard');
+  card.style.display='';
+
+  document.getElementById('resTitle').textContent=t('resTitle');
+  document.getElementById('resSub').textContent=t('resSub');
+
+  // Stats
+  document.getElementById('statGrid').innerHTML=[
+    {lbl:t('statSamples'), val:res.scores.length, col:'var(--accent)'},
+    {lbl:t('statIndexes'), val:res.selIdx.length, col:'var(--green)'},
+    {lbl:t('statCtrl'), val:res.controlCount, col:'var(--warn)'},
+    {lbl:t('statGenes'), val:res.commonGenesPerIdx?res.commonGenesPerIdx.join(' / '):'—', col:'var(--t2)'},
+  ].map(s=>`<div class="stat-c"><div class="stat-lbl">${s.lbl}</div><div class="stat-val" style="color:${s.col}">${s.val}</div></div>`).join('');
+
+  // Table with sortable columns
+  const idxNames=res.selIdx.map(idx=>idx.name);
+  const showAge=res.hasAge;
+
+  // Build column definitions for sorting
+  const cols=[
+    {key:'sampleId', label:t('colSample'), type:'string'},
+    {key:'dx', label:t('colDx'), type:'string'},
+  ];
+  if(showAge) cols.push({key:'age', label:'Age', type:'number'});
+  idxNames.forEach((n,i)=>cols.push({key:'score_'+i, label:n, type:'number', scoreIdx:i}));
+
+  let sortCol=-1, sortAsc=true;
+
+  function renderResTable(){
+    const hd=document.getElementById('resHead');
+    hd.innerHTML=cols.map((c,ci)=>{
+      const arrow=ci===sortCol?(sortAsc?' &#9650;':' &#9660;'):'';
+      return `<th onclick="resSort(${ci})" style="cursor:pointer">${c.label}${arrow}</th>`;
+    }).join('');
+
+    const sorted=[...res.scores];
+    if(sortCol>=0){
+      const c=cols[sortCol];
+      sorted.sort((a,b)=>{
+        let va,vb;
+        if(c.scoreIdx!==undefined){va=a.scores[c.scoreIdx];vb=b.scores[c.scoreIdx]}
+        else if(c.key==='age'){va=a.age??-Infinity;vb=b.age??-Infinity}
+        else{va=a[c.key]||'';vb=b[c.key]||''}
+        const cmp=c.type==='number'?va-vb:String(va).localeCompare(String(vb));
+        return sortAsc?cmp:-cmp;
+      });
+    } else {
+      // Default: Dx then sampleId
+      sorted.sort((a,b)=>{
+        if(a.dx!==b.dx) return a.dx==='Control'?-1:b.dx==='Control'?1:a.dx.localeCompare(b.dx);
+        return a.sampleId.localeCompare(b.sampleId);
+      });
+    }
+
+    const bd=document.getElementById('resBody');
+    bd.innerHTML=sorted.map(row=>{
+      const dxColor=row.dx==='Control'?'var(--green)':row.dx==='Schizo'?'var(--red)':row.dx==='Bipolar'?'var(--purple)':row.dx==='MDD'?'var(--warn)':'var(--t2)';
+      return `<tr>
+        <td class="mono">${row.sampleId}</td>
+        <td class="mono" style="color:${dxColor}">${row.dx}</td>
+        ${showAge?`<td class="mono" style="color:var(--t3)">${row.age!==null?row.age:''}</td>`:''}
+        ${row.scores.map((s,si)=>{
+          const bg=scoreColor(s);
+          const col=s>0?'var(--green)':s<0?'var(--red)':'var(--t3)';
+          return `<td style="cursor:pointer" onclick="showOverlap('${row.sampleId}',${si})"><span class="score-cell" style="background:${bg};color:${col}">${s.toFixed(2)}</span></td>`;
+        }).join('')}
+      </tr>`;
+    }).join('');
+  }
+
+  // Expose sort function globally
+  window.resSort=function(ci){
+    if(sortCol===ci) sortAsc=!sortAsc;
+    else{sortCol=ci;sortAsc=true}
+    renderResTable();
+  };
+
+  renderResTable();
+
+  // Draw figures
+  drawFigures(res);
+
+  initColorInputs();
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ══════════════════════════════════════════════════════
+   Download CSV
+══════════════════════════════════════════════════════ */
+function dlExcel(){
+  if(!lastRes)return;
+  const wb=XLSX.utils.book_new();
+  const idxNames=lastRes.selIdx.map(idx=>idx.name);
+  const extraHdrs=DEMO.extraCols.map(i=>DEMO.header[i]);
+
+  // Sort scores by Dx then sampleId
+  const sorted=[...lastRes.scores].sort((a,b)=>{
+    if(a.dx!==b.dx) return a.dx==='Control'?-1:b.dx==='Control'?1:a.dx.localeCompare(b.dx);
+    return a.sampleId.localeCompare(b.sampleId);
+  });
+
+  // Sheet 1: All scores summary
+  const summaryHdr=['SampleID','Dx',...extraHdrs,...idxNames];
+  const summaryRows=sorted.map(r=>{
+    const extraVals=DEMO.extraCols.map(i=>r.demoRow?r.demoRow._row[i]??'':'');
+    return [r.sampleId,r.dx,...extraVals,...r.scores.map(s=>parseFloat(s.toFixed(4)))];
+  });
+  const ws1=XLSX.utils.aoa_to_sheet([summaryHdr,...summaryRows]);
+  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+
+  // One sheet per index: SampleID, Dx, Demographics, Score for that index
+  for(let i=0;i<idxNames.length;i++){
+    const hdr=['SampleID','Dx',...extraHdrs,'RFind_Score'];
+    const rows=sorted.map(r=>{
+      const extraVals=DEMO.extraCols.map(ci=>r.demoRow?r.demoRow._row[ci]??'':'');
+      return [r.sampleId,r.dx,...extraVals,parseFloat(r.scores[i].toFixed(4))];
+    });
+    const ws=XLSX.utils.aoa_to_sheet([hdr,...rows]);
+    // Sheet name max 31 chars
+    const sheetName=idxNames[i].substring(0,31).replace(/[\\\/\?\*\[\]]/g,'_');
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  }
+
+  // Parameters sheet
+  const now=new Date();
+  const paramData=[
+    ['RFind Web Tool v3 — Analysis Parameters'],
+    [''],
+    ['Parameter','Value'],
+    ['Date', now.toISOString().slice(0,19).replace('T',' ')],
+    ['FPKM File', FPKM?.fileName||'N/A'],
+    ['Demographics File', DEMO?.fileName||'N/A'],
+    ['Index Files', idxNames.join(', ')],
+    ['Total Genes in FPKM', FPKM?.nG||0],
+    ['Total Samples in FPKM', FPKM?.nS||0],
+    ['Matched Samples', lastRes.scores.length],
+    ['Control Samples', lastRes.controlCount],
+    ['HGNC Normalized Genes (FPKM)', FPKM?.normCount||0],
+    [''],
+    ['Per-Index Parameters'],
+    ['Index','Genes in Index','Common Genes (P)','FC Format'],
+  ];
+  lastRes.selIdx.forEach(idx=>{
+    paramData.push([idx.name, idx.genes.length, lastRes.commonGenesPerIdx?.[i]||'N/A', idx.fcFormat||'signedfc']);
+  });
+  paramData.push(['']);
+  paramData.push(['Computation Parameters']);
+  paramData.push(['THRESHOLD_FC', 1.2, 'FC threshold (|FC| < threshold → excluded)']);
+  paramData.push(['CLIP_LIMIT', 300, 'Score clipping limit (±300)']);
+  paramData.push(['P (Universe)', 'commonGenes.length per index', 'P1∩P2: common genes between FPKM and each index (Illumina spec)']);
+  paramData.push(['']);
+  paramData.push(['Algorithm', 'Running Fisher (4-direction)', 'Illumina BaseSpace Correlation Engine']);
+  paramData.push(['Reference', 'Illumina Tech Note 970-2014-007']);
+
+  const wsP=XLSX.utils.aoa_to_sheet(paramData);
+  XLSX.utils.book_append_sheet(wb,wsP,'Parameters');
+
+  // Download
+  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([wbout],{type:'application/octet-stream'}));
+  a.download='rfind_scores.xlsx';
+  a.click();
+}
+
+/* ══════════════════════════════════════════════════════
+   Statistics helpers
+══════════════════════════════════════════════════════ */
+// Mann-Whitney U test (Wilcoxon rank-sum), two-sided, normal approximation
+function mannWhitneyU(a, b){
+  if(a.length<2||b.length<2) return {U:0, z:0, p:1};
+  const all=a.map(v=>({v,g:0})).concat(b.map(v=>({v,g:1})));
+  all.sort((x,y)=>x.v-y.v);
+  // Assign ranks with tie correction
+  let i=0;
+  while(i<all.length){
+    let j=i;
+    while(j<all.length&&all[j].v===all[i].v) j++;
+    const rank=(i+1+j)/2;
+    for(let k=i;k<j;k++) all[k].rank=rank;
+    i=j;
+  }
+  const R1=all.filter(x=>x.g===0).reduce((s,x)=>s+x.rank,0);
+  const n1=a.length, n2=b.length;
+  const U=R1-n1*(n1+1)/2;
+  const mu=n1*n2/2;
+  const sigma=Math.sqrt(n1*n2*(n1+n2+1)/12);
+  const z=sigma>0?(U-mu)/sigma:0;
+  const p=2*(1-normalCDF(Math.abs(z)));
+  return {U, z, p:Math.min(p,1)};
+}
+function normalCDF(x){
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const sign=x<0?-1:1; x=Math.abs(x)/Math.SQRT2;
+  const t=1/(1+p*x);
+  const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return 0.5*(1+sign*y);
+}
+
+// Linear regression: y = a + b*x, returns {slope, intercept, r2, p, n}
+function linearRegression(xs, ys){
+  const n=xs.length;
+  if(n<3) return {slope:0, intercept:0, r2:0, p:1, n};
+  let sx=0,sy=0,sxx=0,sxy=0,syy=0;
+  for(let i=0;i<n;i++){sx+=xs[i];sy+=ys[i];sxx+=xs[i]*xs[i];sxy+=xs[i]*ys[i];syy+=ys[i]*ys[i]}
+  const denom=n*sxx-sx*sx;
+  if(denom===0) return {slope:0,intercept:sy/n,r2:0,p:1,n};
+  const slope=(n*sxy-sx*sy)/denom;
+  const intercept=(sy-slope*sx)/n;
+  const ssRes=syy-intercept*sy-slope*sxy;
+  const ssTot=syy-sy*sy/n;
+  const r2=ssTot>0?1-ssRes/ssTot:0;
+  // t-test for slope significance
+  const se2=ssRes/(n-2);
+  const t=se2>0?slope/Math.sqrt(se2/((sxx-sx*sx/n))):0;
+  const df=n-2;
+  // Approximate p from t-distribution using normal for df>30
+  const p=df>2?2*(1-normalCDF(Math.abs(t))):1;
+  return {slope,intercept,r2:Math.max(0,r2),p:Math.min(p,1),n};
+}
+
+function formatP(p){return p<0.001?'p<0.001':p<0.01?'p='+p.toFixed(3):'p='+p.toFixed(3)}
+
+/* ══════════════════════════════════════════════════════
+   Figures — Plotly.js
+══════════════════════════════════════════════════════ */
+const DX_COLORS={
+  Control:'#4ade80', Schizo:'#f87171', Bipolar:'#a78bfa', MDD:'#fb923c',
+};
+function dxColor(dx){return DX_COLORS[dx]||'#94a3b8'}
+
+function drawFigures(res){
+  const container=document.getElementById('figContainer');
+  container.innerHTML='';
+  document.getElementById('figSection').style.display='';
+
+  const dxGroups=[...new Set(res.scores.map(r=>r.dx))];
+  dxGroups.sort((a,b)=>a==='Control'?-1:b==='Control'?1:a.localeCompare(b));
+
+  const nIdx=res.selIdx.length;
+  const fs=getFigSettings();
+  const plotlyLayout={
+    paper_bgcolor:'transparent', plot_bgcolor:'#fff',
+    font:{family:fs.fontFamily+', sans-serif', size:fs.fontSize},
+    margin:{t:50,r:20,b:60,l:60},
+    legend:{orientation:'h', y:-0.18, x:0.5, xanchor:'center'},
+  };
+  const plotlyConfig={responsive:true, displayModeBar:true,
+    toImageButtonOptions:{format:'svg',filename:'rfind_figure',scale:2}};
+
+  // --- Heatmap (sample x index score matrix) ---
+  if(nIdx>0){
+    const div=createPlotlyCard(container, L==='ja'?'ヒートマップ: サンプル × インデックス':'Heatmap: Sample × Index', 'heatmap');
+    div.style.height=Math.max(400, res.scores.length*14+100)+'px';
+
+    const sorted=[...res.scores].sort((a,b)=>{
+      if(a.dx!==b.dx) return a.dx==='Control'?-1:b.dx==='Control'?1:a.dx.localeCompare(b.dx);
+      return a.sampleId.localeCompare(b.sampleId);
+    });
+
+    const yLabels=sorted.map(r=>`${r.sampleId} (${r.dx})`);
+    const xLabels=res.selIdx.map(idx=>idx.name);
+    const zData=sorted.map(r=>r.scores);
+
+    Plotly.newPlot(div, [{
+      z:zData, x:xLabels, y:yLabels,
+      type:'heatmap',
+      colorscale:[[0,'#2563eb'],[0.5,'#f8fafc'],[1,'#dc2626']],
+      zmid:0,
+      colorbar:{title:'RFind Score',titleside:'right'},
+    }], {
+      ...plotlyLayout,
+      title:{text:L==='ja'?'RFind スコア ヒートマップ':'RFind Score Heatmap',font:{size:fs.titleSize}},
+      margin:{t:50,r:100,b:60,l:200},
+      yaxis:{autorange:'reversed',tickfont:{size:9}},
+      xaxis:{side:'top',tickfont:{size:11}},
+    }, plotlyConfig);
+  }
+
+  // --- Box plots with p-values (one per index) ---
+  for(let i=0;i<nIdx;i++){
+    const idxName=res.selIdx[i].name;
+    const div=createPlotlyCard(container, `Box Plot: ${idxName}`, `box_${i}`);
+
+    const traces=dxGroups.map(dx=>{
+      const vals=res.scores.filter(r=>r.dx===dx).map(r=>r.scores[i]);
+      return {
+        y:vals, type:'box', name:dx,
+        marker:{color:dxColor(dx)},
+        boxpoints:'all', jitter:0.4, pointpos:0,
+        line:{width:1.5},
+      };
+    });
+
+    // Compute p-values (each Dx vs Control, Wilcoxon)
+    const controlVals=res.scores.filter(r=>r.dx==='Control').map(r=>r.scores[i]);
+    const annotations=[];
+    let annY=Math.max(...res.scores.map(r=>r.scores[i]))*1.05;
+    dxGroups.forEach((dx,di)=>{
+      if(dx==='Control')return;
+      const vals=res.scores.filter(r=>r.dx===dx).map(r=>r.scores[i]);
+      const mw=mannWhitneyU(controlVals, vals);
+      const star=mw.p<0.001?'***':mw.p<0.01?'**':mw.p<0.05?'*':'ns';
+      annotations.push({
+        x:dx, y:annY, text:`${star}<br><span style="font-size:9px">${formatP(mw.p)}</span>`,
+        showarrow:false, font:{size:11, color:mw.p<0.05?'#dc2626':'#64748b'},
+      });
+    });
+
+    Plotly.newPlot(div, traces, {
+      ...plotlyLayout,
+      title:{text:`RFind Score by Dx — ${idxName}`, font:{size:fs.titleSize}},
+      yaxis:{title:'RFind Score'},
+      xaxis:{title:''},
+      annotations,
+    }, plotlyConfig);
+  }
+
+  // --- Scatter plots with regression (Age vs RFscore, one per index) ---
+  if(res.hasAge){
+    for(let i=0;i<nIdx;i++){
+      const idxName=res.selIdx[i].name;
+      const div=createPlotlyCard(container, `Age vs RFind Score: ${idxName}`, `scat_${i}`);
+
+      const traces=dxGroups.map(dx=>{
+        const pts=res.scores.filter(r=>r.dx===dx&&r.age!==null);
+        return {
+          x:pts.map(r=>r.age), y:pts.map(r=>r.scores[i]),
+          mode:'markers', type:'scatter', name:dx,
+          marker:{color:dxColor(dx), size:fs.markerSize, opacity:0.8},
+        };
+      });
+
+      // Overall regression line
+      const allPts=res.scores.filter(r=>r.age!==null);
+      const xs=allPts.map(r=>r.age), ys=allPts.map(r=>r.scores[i]);
+      const reg=linearRegression(xs,ys);
+      const xMin=Math.min(...xs), xMax=Math.max(...xs);
+      traces.push({
+        x:[xMin,xMax], y:[reg.intercept+reg.slope*xMin, reg.intercept+reg.slope*xMax],
+        mode:'lines', type:'scatter', name:`R²=${reg.r2.toFixed(3)} ${formatP(reg.p)}`,
+        line:{color:'#334155', width:2, dash:'dot'},
+        showlegend:true,
+      });
+
+      Plotly.newPlot(div, traces, {
+        ...plotlyLayout,
+        title:{text:`Age vs RFind Score — ${idxName}`, font:{size:fs.titleSize}},
+        xaxis:{title:'Age'}, yaxis:{title:'RFind Score'},
+      }, plotlyConfig);
+    }
+
+    // --- Combined scatter (all indexes as subplots) ---
+    if(nIdx>1){
+      const div=createPlotlyCard(container, L==='ja'?'Age vs RFind Score — 全インデックス':'Age vs RFind Score — All Indexes', 'scat_all');
+      div.style.height=(320*Math.ceil(nIdx/2))+'px';
+
+      const cols=2;
+      const nRows=Math.ceil(nIdx/cols);
+      const traces=[];
+      const layout={
+        ...plotlyLayout,
+        margin:{t:30,r:10,b:40,l:50},
+        grid:{rows:nRows, columns:cols, pattern:'independent', roworder:'top to bottom'},
+        showlegend:true,
+        legend:{orientation:'h', y:-0.02, x:0.5, xanchor:'center'},
+        annotations:[],
+      };
+
+      for(let i=0;i<nIdx;i++){
+        const idxName=res.selIdx[i].name;
+        const xaxis='x'+(i===0?'':(i+1));
+        const yaxis='y'+(i===0?'':(i+1));
+
+        layout['xaxis'+(i===0?'':(i+1))]={title:{text:'Age',font:{size:10}}};
+        layout['yaxis'+(i===0?'':(i+1))]={title:{text:'Score',font:{size:10}}};
+
+        const col=i%cols, row=Math.floor(i/cols);
+
+        // Regression for this index
+        const allPts=res.scores.filter(r=>r.age!==null);
+        const reg=linearRegression(allPts.map(r=>r.age), allPts.map(r=>r.scores[i]));
+
+        layout.annotations.push({
+          text:`<b>${idxName}</b> (R²=${reg.r2.toFixed(3)}, ${formatP(reg.p)})`,
+          showarrow:false, xref:'paper', yref:'paper',
+          x:(col+0.5)/cols, y:1-row/nRows-0.02, font:{size:11},
+        });
+
+        dxGroups.forEach(dx=>{
+          const pts=res.scores.filter(r=>r.dx===dx&&r.age!==null);
+          traces.push({
+            x:pts.map(r=>r.age), y:pts.map(r=>r.scores[i]),
+            mode:'markers', type:'scatter', name:dx,
+            marker:{color:dxColor(dx), size:5, opacity:0.7},
+            xaxis, yaxis, showlegend:i===0, legendgroup:dx,
+          });
+        });
+
+        // Regression line per subplot
+        const xs=allPts.map(r=>r.age);
+        const xMin=Math.min(...xs), xMax=Math.max(...xs);
+        traces.push({
+          x:[xMin,xMax], y:[reg.intercept+reg.slope*xMin, reg.intercept+reg.slope*xMax],
+          mode:'lines', type:'scatter', showlegend:false,
+          line:{color:'#334155', width:1.5, dash:'dot'},
+          xaxis, yaxis,
+        });
+      }
+
+      Plotly.newPlot(div, traces, layout, plotlyConfig);
+    }
+  }
+}
+
+function createPlotlyCard(container, title, id){
+  const card=document.createElement('div');
+  card.className='fig-card';
+  const plotDiv=document.createElement('div');
+  plotDiv.id='plot_'+id;
+  plotDiv.style.width='100%';
+  plotDiv.style.height='400px';
+  plotDiv.style.background='#fff';
+  plotDiv.style.borderRadius='6px';
+  card.innerHTML=`<div class="fig-title">${title}</div>`;
+  card.appendChild(plotDiv);
+  // Download buttons
+  const dlRow=document.createElement('div');
+  dlRow.className='fig-dl';
+  dlRow.innerHTML=`
+    <button onclick="dlPlotly('plot_${id}','${id}','png')">PNG</button>
+    <button onclick="dlPlotly('plot_${id}','${id}','svg')">SVG</button>`;
+  card.appendChild(dlRow);
+  container.appendChild(card);
+  return plotDiv;
+}
+
+function getFigSettings(){
+  return {
+    w: parseInt(document.getElementById('figW')?.value)||1000,
+    h: parseInt(document.getElementById('figH')?.value)||1000,
+    scale: parseInt(document.getElementById('figScale')?.value)||2,
+    fontSize: parseInt(document.getElementById('figFontSize')?.value)||14,
+    titleSize: parseInt(document.getElementById('figTitleSize')?.value)||16,
+    fontFamily: document.getElementById('figFont')?.value||'Arial',
+    xLabel: document.getElementById('figXLabel')?.value||'',
+    yLabel: document.getElementById('figYLabel')?.value||'',
+    markerSize: parseInt(document.getElementById('figMarkerSize')?.value)||7,
+  };
+}
+
+function dlPlotly(divId, name, format){
+  const div=document.getElementById(divId);
+  if(!div)return;
+  const s=getFigSettings();
+  Plotly.downloadImage(div,{format, filename:'rfind_'+name, width:s.w, height:s.h, scale:s.scale});
+}
+
+function applyFigSettings(){
+  if(!lastRes)return;
+  // Update Dx colors from inputs
+  const colorInputs=document.querySelectorAll('#figColorInputs input[type=color]');
+  colorInputs.forEach(inp=>{DX_COLORS[inp.dataset.dx]=inp.value});
+  drawFigures(lastRes);
+}
+
+function initColorInputs(){
+  const container=document.getElementById('figColorInputs');
+  if(!container||!lastRes)return;
+  const dxGroups=[...new Set(lastRes.scores.map(r=>r.dx))];
+  container.innerHTML=dxGroups.map(dx=>
+    `<label style="font-size:10px;color:var(--t2)">${dx}<br><input type="color" value="${dxColor(dx)}" data-dx="${dx}" style="width:40px;height:24px;border:none;cursor:pointer"></label>`
+  ).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   Template downloads
+══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   Overlapping genes detail
+══════════════════════════════════════════════════════ */
+function showOverlap(sampleId, idxIdx){
+  if(!lastRes||!FPKM||!DEMO)return;
+  const scoreRow=lastRes.scores.find(r=>r.sampleId===sampleId);
+  if(!scoreRow)return;
+  const idx=lastRes.selIdx[idxIdx];
+  if(!idx)return;
+
+  const panel=document.getElementById('overlapPanel');
+  panel.style.display='';
+  document.getElementById('overlapTitle').textContent=`${sampleId} × ${idx.name}`;
+  document.getElementById('overlapSub').textContent=`Score: ${scoreRow.scores[idxIdx].toFixed(3)}`;
+  document.getElementById('overlapContent').innerHTML='<span style="color:var(--t3);font-size:12px">Computing...</span>';
+
+  // Recompute Running Fisher for this one sample with gene tracking
+  setTimeout(()=>{
+    // Reconstruct b1 and b2
+    const idxGeneSet=new Set(idx.genes.map(g=>g.Symbol));
+    const commonGenes=FPKM.genes.filter(g=>idxGeneSet.has(g));
+    const commonSet=new Set(commonGenes);
+    const b1=idx.genes.filter(g=>commonSet.has(g.Symbol));
+
+    const sColIdx=FPKM.samples.indexOf(sampleId);
+    const controlIds=DEMO.matchedIds.filter(id=>DEMO.controlIds.has(id));
+    const controlColIdxs=controlIds.map(id=>FPKM.samples.indexOf(id)).filter(i=>i>=0);
+
+    // Control mean
+    const controlMean=new Float64Array(FPKM.nG);
+    for(let g=0;g<FPKM.nG;g++){
+      let sum=0,cnt=0;
+      for(const ci of controlColIdxs){const v=FPKM.mat[g*FPKM.nS+ci];if(!isNaN(v)){sum+=v;cnt++}}
+      controlMean[g]=cnt>0?sum/cnt:0;
+    }
+
+    const geneIdxMap={};
+    FPKM.genes.forEach((g,i)=>geneIdxMap[g]=i);
+
+    const b2=[];
+    for(const gene of commonGenes){
+      const gIdx=geneIdxMap[gene];
+      if(gIdx===undefined)continue;
+      const fpkmVal=FPKM.mat[gIdx*FPKM.nS+sColIdx];
+      const fc=computeSampleFC(gIdx,fpkmVal,controlMean[gIdx]);
+      if(fc!==null) b2.push({Symbol:gene,FC:fc});
+    }
+
+    const rf=runningFisher(b1,b2,commonGenes.length,CLIP_LIMIT,true);
+
+    // Render
+    const dirs=[
+      {key:'upup',label:'UU (Index UP × Sample UP)',color:'var(--green)',sign:'+'},
+      {key:'downdown',label:'DD (Index DN × Sample DN)',color:'var(--green)',sign:'+'},
+      {key:'updown',label:'UD (Index UP × Sample DN)',color:'var(--red)',sign:'-'},
+      {key:'downup',label:'DU (Index DN × Sample UP)',color:'var(--red)',sign:'-'},
+    ];
+
+    let html='';
+    dirs.forEach(d=>{
+      const info=rf[d.key];
+      const genes=info.genes||[];
+      html+=`<div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:${d.color};margin-bottom:4px">
+          ${d.label} — Score: ${d.sign}${Math.abs(info.score).toFixed(2)}, Overlap: ${info.overlap}, p=${info.pval<0.001?info.pval.toExponential(2):info.pval.toFixed(4)}
+        </div>`;
+      if(genes.length>0){
+        html+=`<div style="display:flex;flex-wrap:wrap;gap:4px">`;
+        genes.forEach(g=>{
+          html+=`<span style="font-family:var(--fm);font-size:10px;padding:2px 6px;border-radius:3px;background:var(--s3);color:var(--t2)" title="Index FC: ${g.fc_index.toFixed(2)}, Sample FC: ${g.fc_sample.toFixed(2)}">${g.symbol}</span>`;
+        });
+        html+=`</div>`;
+      } else {
+        html+=`<span style="font-size:11px;color:var(--t4)">No overlapping genes</span>`;
+      }
+      html+=`</div>`;
+    });
+
+    html+=`<div style="font-size:10px;color:var(--t4);margin-top:8px">Click a gene tag to see FC values (hover for details). Total score = ${rf.total.toFixed(3)}</div>`;
+    document.getElementById('overlapContent').innerHTML=html;
+    panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },10);
+}
+
+function copyMethods(){
+  if(!lastRes)return;
+  const nSamples=lastRes.scores.length;
+  const nCtrl=lastRes.controlCount;
+  const nIdx=lastRes.selIdx.length;
+  const idxNames=lastRes.selIdx.map(idx=>idx.name).join(', ');
+  const nGenes=lastRes.commonGenesPerIdx?lastRes.commonGenesPerIdx.join('/'):'N/A';
+  const dxGroups=[...new Set(lastRes.scores.map(r=>r.dx))];
+  const dxCounts=dxGroups.map(dx=>`${dx} (n=${lastRes.scores.filter(r=>r.dx===dx).length})`).join(', ');
+
+  const text=`Directional enrichment analysis was performed using the RFind Web Tool (v3), which implements the Running Fisher algorithm — a rank-based enrichment method analogous to Gene Set Enrichment Analysis (GSEA) but using Fisher's exact test for statistical significance rather than permutation testing (Kupershmidt et al., 2010; Illumina Technical Note 970-2014-007).
+
+For each sample, fold change (FC) values were computed relative to the mean expression of Control samples (n=${nCtrl}). Genes with |FC| < 1.2 were excluded, and FC values ≤ 1 were converted to −1/FC to create a signed fold change reflecting directionality (positive = upregulated, negative = downregulated). The Running Fisher algorithm was then applied in four directions (UP-UP, UP-DOWN, DOWN-UP, DOWN-DOWN) to assess directional concordance between each sample's expression profile and ${nIdx} reference index${nIdx>1?'es':''} (${idxNames}). The enrichment score for each direction was computed as the mean of −log₁₀(p) from bidirectional hypergeometric scans, with concordant directions receiving a positive sign and discordant directions a negative sign. The total RFind score is the sum of the four directional scores, clipped to ±300.
+
+Gene symbols were normalized to current HGNC-approved symbols using a mapping of 97,737 aliases, previous symbols, and Ensembl gene IDs. Cross-species ortholog mapping (Mouse/Rat to Human; 2,042 entries from the Rat Genome Database) was also applied. The universe size (P) for the hypergeometric test was defined as the number of common genes between the expression matrix and each reference index (P1∩P2), following the Illumina specification.
+
+A total of ${nSamples} samples were analyzed across ${dxGroups.length} diagnostic groups: ${dxCounts}. Statistical comparisons of RFind scores between groups were performed using the Wilcoxon rank-sum test (Mann-Whitney U). All computations were performed client-side in the browser with no data transmitted to external servers.`;
+
+  // Show and copy
+  const box=document.getElementById('methodsBox');
+  box.style.display='';
+  document.getElementById('methodsText').textContent=text;
+
+  navigator.clipboard.writeText(text).then(()=>{
+    const badge=document.getElementById('methodsCopied');
+    badge.style.display='';
+    setTimeout(()=>badge.style.display='none',2000);
+  }).catch(()=>{});
+}
+
+
+function dlTemplate(type){
+  const wb=XLSX.utils.book_new();
+  if(type==='fpkm'){
+    const data=[
+      ['Gene','Sample1','Sample2','Sample3','Sample4','Sample5'],
+      ['AQP4',50.2,48.1,52.3,25.1,30.5],
+      ['CALB1',30.1,28.5,32.0,15.2,18.3],
+      ['DCX',8.5,7.2,9.1,16.4,14.8],
+      ['(gene name)','(FPKM/TPM)','...','','',''],
+    ];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),'FPKM');
+  } else if(type==='demo'){
+    const data=[
+      ['ID','Dx','Age','Sex','Race'],
+      ['Sample1','Control',45,'M','CAUC'],
+      ['Sample2','Control',52,'F','AA'],
+      ['Sample3','Schizo',41,'M','CAUC'],
+      ['Sample4','Bipolar',60,'F','AA'],
+      ['Sample5','MDD',50,'M','CAUC'],
+    ];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),'Demographics');
+  } else {
+    const data=[
+      ['Symbol','Fold Change'],
+      ['AQP4',224.5],
+      ['CALB1',-40.2],
+      ['DCX',50.1],
+      ['HMGA2',-56.3],
+      ['(gene symbol)','(positive=UP, negative=DN)'],
+    ];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),'Index');
+  }
+  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([wbout],{type:'application/octet-stream'}));
+  a.download=`rfind_template_${type}.xlsx`;
+  a.click();
+}
+
+/* ══════════════════════════════════════════════════════
+   Demo data
+══════════════════════════════════════════════════════ */
+async function loadDemo(){
+  await ensureHGNC();
+  const demoFiles=[
+    {url:'FPKM_demo.xlsx',     type:'fpkm'},
+    {url:'Demographics_demo.xlsx', type:'demo'},
+    {url:'Dev.csv',            type:'idx'},
+    {url:'imGC_DEG.csv?v='+Date.now(), type:'idx'},
+  ];
+  try{
+    for(const f of demoFiles){
+      const resp=await fetch(f.url);
+      if(!resp.ok) throw new Error(f.url+' not found');
+      const buf=await resp.arrayBuffer();
+      if(f.type==='fpkm'){
+        const file=new File([buf],f.url);
+        await handleFPKMFile(file);
+      } else if(f.type==='demo'){
+        const file=new File([buf],f.url);
+        await handleDemoFile(file);
+      } else {
+        const file=new File([buf],f.url);
+        await addIndexFromFile(file);
+      }
+    }
+  }catch(e){
+    showError(L==='ja'
+      ?`デモデータの読込に失敗しました（${e.message}）。HTTPサーバー経由で開いてください。`
+      :`Failed to load demo data (${e.message}). Open via HTTP server.`);
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   Init
+══════════════════════════════════════════════════════ */
+applyTexts();
+ensureHGNC();       // load maps, then update to success/failure
+</script>
+</body>
+</html>
