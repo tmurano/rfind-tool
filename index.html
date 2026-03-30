@@ -108,7 +108,7 @@ header{border-bottom:1px solid var(--border);padding:18px 0 16px;margin-bottom:3
 .progress-text{font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm)}
 
 /* RESULTS */
-.res-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.res-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 .stat-c{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
 .stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:3px}
 .stat-val{font-family:var(--fm);font-size:20px;font-weight:500}
@@ -176,7 +176,7 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   </div>
   <p class="subtitle" id="subtitle"></p>
   <div style="margin-top:10px">
-    <button onclick="loadDemo()" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'" id="demoBtn"></button>
+    <button onclick="loadDemoAndRun()" style="padding:5px 14px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'" id="demoBtn"></button>
   </div>
 </header>
 
@@ -404,7 +404,7 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 ══════════════════════════════════════════════════════ */
 const T = {
   ja:{
-    subtitle:"FPKMマトリックスとDemographicsファイルをアップロードし、Running Fisher（4方向）でサンプルごとのRFindスコアを算出します。すべての処理はブラウザ上で完結します。",
+    subtitle:"RFindは、あなたの遺伝子発現データが参照gene setとどの程度「方向性を含めて一致」しているかを、サンプルごとに定量するツールです。発現量マトリックスと参照インデックスをアップロードするだけで、各サンプルのRFindスコア（Running Fisher法）・統計検定・可視化が得られます。例えば「疾患群で発生関連遺伝子が胎児的パターンに回帰しているか？」といった問いに答えられます。すべての処理はブラウザ上で完結し、データは外部に送信されません。",
     s1title:"Step 1: 発現量マトリックス",
     s1sub:"遺伝子 x サンプルの発現量マトリックス（CSV/Excel）をアップロードしてください。",
     s2title:"Step 2: サンプル情報（Demographics）",
@@ -430,7 +430,7 @@ const T = {
     colSample:"サンプルID", colDx:"診断群",
   },
   en:{
-    subtitle:"Upload an FPKM matrix and Demographics file to compute per-sample RFind scores using Running Fisher (4-direction). All computation runs client-side.",
+    subtitle:"RFind quantifies how well each sample's gene expression profile matches a reference gene set in terms of directional concordance. Upload your expression matrix and reference indexes to get per-sample RFind scores (Running Fisher method), statistical tests, and publication-ready figures. For example: 'Do disease samples show a fetal-like gene expression pattern?' All computation runs in your browser — no data is sent to any server.",
     s1title:"Step 1: Expression Matrix",
     s1sub:"Upload a gene x sample expression matrix (CSV/Excel).",
     s2title:"Step 2: Sample Info (Demographics)",
@@ -1480,7 +1480,6 @@ function renderResults(res){
     {lbl:t('statSamples'), val:res.scores.length, col:'var(--accent)'},
     {lbl:t('statIndexes'), val:res.selIdx.length, col:'var(--green)'},
     {lbl:t('statCtrl'), val:res.controlCount, col:'var(--warn)'},
-    {lbl:t('statGenes'), val:res.commonGenesPerIdx?res.commonGenesPerIdx.join(' / '):'—', col:'var(--t2)'},
   ].map(s=>`<div class="stat-c"><div class="stat-lbl">${s.lbl}</div><div class="stat-val" style="color:${s.col}">${s.val}</div></div>`).join('');
 
   // Table with sortable columns
@@ -1718,35 +1717,6 @@ function drawFigures(res){
   };
   const plotlyConfig={responsive:true, displayModeBar:true,
     toImageButtonOptions:{format:'svg',filename:'rfind_figure',scale:2}};
-
-  // --- Heatmap (sample x index score matrix) ---
-  if(nIdx>0){
-    const div=createPlotlyCard(container, L==='ja'?'ヒートマップ: サンプル × インデックス':'Heatmap: Sample × Index', 'heatmap');
-    div.style.height=Math.max(400, res.scores.length*14+100)+'px';
-
-    const sorted=[...res.scores].sort((a,b)=>{
-      if(a.dx!==b.dx) return a.dx==='Control'?-1:b.dx==='Control'?1:a.dx.localeCompare(b.dx);
-      return a.sampleId.localeCompare(b.sampleId);
-    });
-
-    const yLabels=sorted.map(r=>`${r.sampleId} (${r.dx})`);
-    const xLabels=res.selIdx.map(idx=>idx.name);
-    const zData=sorted.map(r=>r.scores);
-
-    Plotly.newPlot(div, [{
-      z:zData, x:xLabels, y:yLabels,
-      type:'heatmap',
-      colorscale:[[0,'#2563eb'],[0.5,'#f8fafc'],[1,'#dc2626']],
-      zmid:0,
-      colorbar:{title:'RFind Score',titleside:'right'},
-    }], {
-      ...plotlyLayout,
-      title:{text:L==='ja'?'RFind スコア ヒートマップ':'RFind Score Heatmap',font:{size:fs.titleSize}},
-      margin:{t:50,r:100,b:60,l:200},
-      yaxis:{autorange:'reversed',tickfont:{size:9}},
-      xaxis:{side:'top',tickfont:{size:11}},
-    }, plotlyConfig);
-  }
 
   // --- Box plots with p-values (one per index) ---
   for(let i=0;i<nIdx;i++){
@@ -2104,6 +2074,13 @@ function dlTemplate(type){
 /* ══════════════════════════════════════════════════════
    Demo data
 ══════════════════════════════════════════════════════ */
+async function loadDemoAndRun(){
+  await loadDemo();
+  if(FPKM&&DEMO&&uploadedIndexes.length>0){
+    await runRFind();
+  }
+}
+
 async function loadDemo(){
   await ensureHGNC();
   const demoFiles=[

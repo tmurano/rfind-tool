@@ -1,0 +1,12 @@
+.DS_Store
+.claude/
+Demographics.xlsx
+FPKM_adj.xlsx
+Kainate_Day03.csv
+RFScore_Metadata_merged.xlsx
+RFind_WebTool_260330.docx
+RFind_WebTool_Report.docx
+pH.csv
+Chunk3_RFind.R
+Technotes_Illumina.pdf
+scripts/.DS_Store
