@@ -278,9 +278,15 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
     </div>
   </div>
 
+  <!-- Preset indexes -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:12px;color:var(--t2);margin-bottom:8px;font-weight:500" id="presetLabel"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="presetBtns"></div>
+  </div>
+
   <div style="font-size:11px;color:var(--t3);margin-bottom:8px;line-height:1.6;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-    <span style="color:var(--accent)">Format:</span> Symbol列 + Fold Change列を含むテーブル。列順不問。FC形式（Ratio/Log2FC/SignedFC）は自動判定。<br>
-    <span style="color:var(--t4)">例: Symbol | Fold Change | P-Value(任意) | ...</span>
+    <span style="color:var(--accent)" id="orUploadLabel"></span><br>
+    <span style="color:var(--t4)">Symbol + Fold Change 列があればOK。列順不問、FC形式は自動判定。P-Value/Rank列は無視されます。</span>
     <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
   </div>
   <div class="drop" id="idxDrop"
@@ -410,7 +416,9 @@ const T = {
     s2title:"Step 2: サンプル情報（Demographics）",
     s2sub:"サンプルIDとDx（診断）列を含むファイルをアップロードしてください。Dx=\"Control\"のサンプルが基準になります。",
     s3title:"Step 3: 参照インデックス（Gene Set）",
-    s3sub:"スコアリングに使う参照インデックスファイル（Symbol, Fold Change形式）をアップロードしてください（複数可）。",
+    s3sub:"比較したいDEGリスト（遺伝子名＋Fold Change）をアップロードしてください（複数可）。通常のpathway解析と異なり、RFindは遺伝子の発現変動の「方向（UP/DN）」まで考慮してスコアを算出します。",
+    presetLabel:"プリセットインデックス（クリックで追加）:",
+    orUploadLabel:"または、お手持ちのDEGリストをアップロード:",
     s4title:"解析実行",
     s4sub:"設定を確認して実行します。サンプル数 x インデックス数分のRunning Fisherを計算します。",
     resTitle:"解析結果",
@@ -436,7 +444,9 @@ const T = {
     s2title:"Step 2: Sample Info (Demographics)",
     s2sub:"Upload a file containing sample IDs and a Dx (diagnosis) column. Samples with Dx=\"Control\" will be used as the baseline.",
     s3title:"Step 3: Reference Index (Gene Set)",
-    s3sub:"Upload reference index files (Symbol, Fold Change format). Multiple files supported.",
+    s3sub:"Upload your DEG list (gene symbols + fold change). Multiple files supported. Unlike standard pathway analysis, RFind evaluates directional concordance (UP/DN) between your data and the reference.",
+    presetLabel:"Preset indexes (click to add):",
+    orUploadLabel:"Or upload your own DEG list:",
     s4title:"Run Analysis",
     s4sub:"Review settings and run. Running Fisher will be computed for each sample x index.",
     resTitle:"Results",
@@ -462,8 +472,9 @@ function t(k){ return T[L][k]||k }
 function applyTexts(){
   const ids=['subtitle','s1title','s1sub','s2title','s2sub','s3title','s3sub','s4title','s4sub',
     'resTitle','resSub','clickUp1','orDrag1','clickUp2','orDrag2','clickUp3','orDrag3','idxHint',
-    'runLbl','dlLbl','footNote','demoBtn','methodsLbl'];
+    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel'];
   ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
+  buildPresetBtns();
 }
 function setLang(l){
   L=l;
@@ -1070,6 +1081,45 @@ function matchDemoIfReady(){
 function loadIdxFiles(e){
   const files=e.target.files;
   for(const f of files) addIndexFromFile(f);
+}
+
+/* ══════════════════════════════════════════════════════
+   Preset indexes
+══════════════════════════════════════════════════════ */
+const PRESETS=[
+  {file:'Dev.csv', name:'Dev', desc:{ja:'胎生期→成熟の発生軸（Jaffe 2020）',en:'Fetal→mature developmental axis (Jaffe 2020)'},color:'#38bdf8'},
+  {file:'imGC_DEG.csv', name:'imGC', desc:{ja:'未成熟顆粒細胞マーカー（Zhou 2022）',en:'Immature granule cell markers (Zhou 2022)'},color:'#4ade80'},
+  {file:'Kainate_Day03.csv', name:'Kainate D3', desc:{ja:'カイニン酸誘発後3日目DEG（マウスDG）',en:'Kainate-induced DEG day 3 (mouse DG)'},color:'#fb923c'},
+  {file:'pH.csv', name:'pH', desc:{ja:'組織pH感受性遺伝子セット',en:'Tissue pH-sensitive gene set'},color:'#a78bfa'},
+];
+
+function buildPresetBtns(){
+  const container=document.getElementById('presetBtns');
+  if(!container)return;
+  container.innerHTML=PRESETS.map((p,i)=>
+    `<button onclick="loadPreset(${i})" id="preset_${i}" style="padding:5px 12px;border-radius:6px;border:1.5px solid ${p.color};background:none;color:${p.color};cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition);line-height:1.3;text-align:left" title="${p.desc[L]}">
+      <span style="font-weight:600">${p.name}</span><br>
+      <span style="font-size:9px;color:var(--t3)">${p.desc[L]}</span>
+    </button>`
+  ).join('');
+}
+
+async function loadPreset(i){
+  const p=PRESETS[i];
+  // Check if already loaded
+  if(uploadedIndexes.some(idx=>idx.id===p.name)){return}
+  try{
+    const resp=await fetch(p.file+'?v='+Date.now());
+    if(!resp.ok) throw new Error(p.file+' not found');
+    const buf=await resp.arrayBuffer();
+    const file=new File([buf],p.file);
+    await addIndexFromFile(file);
+    // Mark button as selected
+    const btn=document.getElementById('preset_'+i);
+    if(btn){btn.style.background=p.color+'22';btn.style.borderStyle='solid'}
+  }catch(e){
+    showError(L==='ja'?`プリセット "${p.name}" の読込に失敗しました。`:`Failed to load preset "${p.name}".`);
+  }
 }
 
 /* ══════════════════════════════════════════════════════
