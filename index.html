@@ -187,25 +187,11 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
       <span class="logo-tag">Web Tool v3</span>
     </div>
     <div class="hdr-right">
-      <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="font-size:11px;color:var(--t3);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t3)'">GitHub</a>
-      <span style="color:var(--t4);font-size:10px">|</span>
-      <a href="#" onclick="document.getElementById('citeBox').style.display=document.getElementById('citeBox').style.display==='none'?'':'none';return false" style="font-size:11px;color:var(--t3);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t3)'">How to Cite</a>
-      <span style="color:var(--t4);font-size:10px">|</span>
       <div class="lang-wrap">
         <button class="lang-btn on" onclick="setLang('ja')">日本語</button>
         <button class="lang-btn"   onclick="setLang('en')">English</button>
       </div>
     </div>
-  </div>
-  <div id="citeBox" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:10px;margin-bottom:10px">
-    <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px">How to Cite</div>
-    <div style="font-size:11px;color:var(--t3);line-height:1.7">
-      Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method.<br>
-      Available at: <a href="https://tmurano.github.io/rfind-tool/" style="color:var(--accent)">https://tmurano.github.io/rfind-tool/</a><br>
-      GitHub: <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="color:var(--accent)">https://github.com/tmurano/rfind-tool</a><br>
-      <span style="color:var(--t4)">Algorithm: Illumina BaseSpace Correlation Engine Running Fisher (Tech Note 970-2014-007)</span>
-    </div>
-    <button onclick="navigator.clipboard.writeText('Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method. https://tmurano.github.io/rfind-tool/');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy citation',1500)" style="margin-top:6px;padding:3px 10px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">Copy citation</button>
   </div>
   <p id="catchcopy" style="color:var(--t2);font-size:14px;font-weight:400;margin-bottom:14px;line-height:1.5"></p>
   <div style="text-align:center;margin-bottom:10px">
@@ -466,7 +452,21 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 
 <footer>
   RFind Web Tool v3 &#8212; <span id="footNote"></span><br>
-  <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">Running Fisher (4-direction) &middot; All computation runs client-side &middot; <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="color:var(--t4)">Source code &amp; R/Python scripts on GitHub</a></span>
+  <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">Running Fisher (4-direction) &middot; All computation runs client-side</span><br>
+  <div style="margin-top:8px;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap">
+    <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="font-size:11px;color:var(--t3);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t3)'">GitHub</a>
+    <span style="color:var(--t4)">|</span>
+    <a href="#" onclick="document.getElementById('citeBox').style.display=document.getElementById('citeBox').style.display==='none'?'':'none';return false" style="font-size:11px;color:var(--t3);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t3)'">How to Cite</a>
+  </div>
+  <div id="citeBox" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:10px;text-align:left;max-width:600px;margin-left:auto;margin-right:auto">
+    <div style="font-size:11px;color:var(--t3);line-height:1.7">
+      Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method.<br>
+      Available at: <a href="https://tmurano.github.io/rfind-tool/" style="color:var(--accent)">https://tmurano.github.io/rfind-tool/</a><br>
+      GitHub: <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="color:var(--accent)">https://github.com/tmurano/rfind-tool</a><br>
+      <span style="color:var(--t4)">Algorithm: Illumina BaseSpace Correlation Engine Running Fisher (Tech Note 970-2014-007)</span>
+    </div>
+    <button onclick="navigator.clipboard.writeText('Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method. https://tmurano.github.io/rfind-tool/');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy citation',1500)" style="margin-top:6px;padding:3px 10px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">Copy citation</button>
+  </div>
 </footer>
 </div>
 
@@ -477,7 +477,7 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 const T = {
   ja:{
     valueProp:"発現マトリックス + サンプル情報 + DEGリスト → サンプルごとの方向性スコア・Figure・Methods文を即時出力",
-    catchcopy:"遺伝子の発現変動の「方向（UP/DN）」まで考慮した Running Fisher 法で、あなたのデータと参照gene setの類似度をサンプル単位で数値化します。",
+    catchcopy:"サンプルごと（個人・個体など）の遺伝子発現データと参照遺伝子リストとの比較を行い、方向性を含む一致度をスコア化。図・統計・Methods作成まで自動で行います。",
     subtitle:"3つのファイルをアップロードするだけ →",
     hero1:"📊 Figure + Methods文が即完成",
     hero2:"📁 発現量 + サンプル情報 + DEGリストの3ファイルだけ",
@@ -485,7 +485,7 @@ const T = {
     s1title:"Step 1: 発現量マトリックス",
     s1sub:"遺伝子 x サンプルの発現量マトリックス（CSV/Excel）をアップロードしてください。",
     s2title:"Step 2: サンプル情報",
-    s2sub:"サンプルIDとDx（診断群）列を含むファイルをアップロードしてください。Dx=\"Control\"のサンプルが必須です（Control群の平均発現量を基準として各サンプルのFold Changeを計算し、遺伝子の変動方向を定義するため）。",
+    s2sub:"ケース・コントロールデザインのデータに最適です。サンプルIDと診断群（Dx）列を含むファイルをアップロードしてください。Control群（1サンプル以上）を基準に各サンプルの発現変動方向を算出します。",
     s3title:"Step 3: 参照インデックス（Gene Set）",
     s3sub:"比較したいDEGリスト（遺伝子名＋Fold Change）をアップロードしてください（複数可）。通常のpathway解析と異なり、RFindは遺伝子の発現変動の「方向（UP/DN）」まで考慮してスコアを算出します。",
     presetLabel:"プリセットインデックス（クリックで追加）:",
@@ -514,7 +514,7 @@ const T = {
   },
   en:{
     valueProp:"Expression matrix + sample info + DEG list → per-sample directional scores, figures & Methods text, instantly",
-    catchcopy:"Using 4-direction Running Fisher analysis, RFind quantifies how well each sample's expression profile matches your reference gene sets — including UP/DN directionality.",
+    catchcopy:"Compare per-sample (individual/subject) gene expression against reference gene sets, scoring directional concordance. Figures, statistics, and Methods text are generated automatically.",
     subtitle:"Upload 3 files →",
     hero1:"📊 Instant figures + Methods text",
     hero2:"📁 Expression matrix + sample info + DEG list — that's all",
@@ -522,7 +522,7 @@ const T = {
     s1title:"Step 1: Expression Matrix",
     s1sub:"Upload a gene x sample expression matrix (CSV/Excel).",
     s2title:"Step 2: Sample Info",
-    s2sub:"Upload a file containing sample IDs and a Dx (diagnosis) column. Dx=\"Control\" is required — Control samples define the baseline expression from which each sample's fold change and gene directionality are computed.",
+    s2sub:"Best for case-control datasets. Upload a file with sample IDs and a Dx (diagnosis) column. At least one Control sample is needed as the baseline for computing each sample's expression directionality.",
     s3title:"Step 3: Reference Index (Gene Set)",
     s3sub:"Upload your DEG list (gene symbols + fold change). Multiple files supported. Unlike standard pathway analysis, RFind evaluates directional concordance (UP/DN) between your data and the reference.",
     presetLabel:"Preset indexes (click to add):",
