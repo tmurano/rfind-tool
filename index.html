@@ -146,9 +146,9 @@ details.acc>.acc-body{background:var(--s2);border:1px solid var(--border);border
   border:1px solid var(--border2);color:var(--t3);font-size:10px;cursor:help;margin-left:5px;position:relative;vertical-align:middle}
 .help-q:hover{border-color:var(--accent);color:var(--accent)}
 .help-q .help-tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;
-  font-size:11px;color:var(--t2);line-height:1.6;width:280px;z-index:99;font-weight:normal;
-  box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none}
+  background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:12px 16px;
+  font-size:11px;color:var(--t2);line-height:1.7;width:360px;z-index:99;font-weight:normal;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none;white-space:pre-line}
 .help-q:hover .help-tip{display:block}
 
 /* FIGURE CARDS */
@@ -207,19 +207,9 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
     </div>
     <button onclick="navigator.clipboard.writeText('Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method. https://tmurano.github.io/rfind-tool/');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy citation',1500)" style="margin-top:6px;padding:3px 10px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">Copy citation</button>
   </div>
-  <p id="valueProp" style="color:var(--accent);font-size:14px;font-weight:600;margin-top:12px;margin-bottom:6px;letter-spacing:.01em"></p>
   <p id="catchcopy" style="color:var(--t2);font-size:14px;font-weight:400;margin-bottom:14px;line-height:1.5"></p>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px" id="heroPoints"></div>
-  <details class="acc" style="margin-bottom:14px">
-    <summary style="font-size:12px;color:var(--accent)">Example output</summary>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
-      <img src="example_output.png" alt="Score table" style="border-radius:8px;border:1px solid var(--border);max-width:48%;height:auto">
-      <img src="example_output1.png" alt="Box plots" style="border-radius:8px;border:1px solid var(--border);max-width:48%;height:auto">
-    </div>
-  </details>
-  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <button onclick="loadDemoAndRun()" style="padding:10px 28px;border-radius:8px;border:2px solid var(--accent);background:rgba(56,189,248,.08);color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:16px;font-weight:600;transition:all var(--transition)" onmouseover="this.style.background='rgba(56,189,248,.18)'" onmouseout="this.style.background='rgba(56,189,248,.08)'" id="demoBtn"></button>
-    <span id="subtitle" class="subtitle" style="margin:0"></span>
+  <div style="text-align:center;margin-bottom:10px">
+    <button onclick="loadDemoAndRun()" style="padding:14px 40px;border-radius:10px;border:none;background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#000;cursor:pointer;font-family:var(--fb);font-size:18px;font-weight:700;transition:all var(--transition);letter-spacing:.02em;box-shadow:0 4px 16px rgba(56,189,248,.3)" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 24px rgba(56,189,248,.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 16px rgba(56,189,248,.3)'" id="demoBtn"></button>
   </div>
 </header>
 
@@ -236,11 +226,16 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   </div>
 
   <details class="acc">
-    <summary>フォーマット詳細・テンプレート</summary>
+    <summary>入力ファイルの作り方</summary>
     <div class="acc-body">
-      <span style="color:var(--accent)">Format:</span> 1列目 = 遺伝子名（Gene/Symbol）、2列目以降 = サンプルごとの発現量（FPKM/TPM）<br>
-      <span style="color:var(--t4)">例: Gene | Sample1 | Sample2 | ... の行列形式</span>
-      <button onclick="dlTemplate('fpkm')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+      Excel または CSV で、以下のような表を作ってください:<br>
+      <span style="color:var(--accent);font-family:var(--fm)">
+      &nbsp; Gene &nbsp;| Sample1 | Sample2 | Sample3 | ...<br>
+      &nbsp; AQP4 &nbsp;| 50.2 &nbsp;&nbsp;&nbsp;| 48.1 &nbsp;&nbsp;&nbsp;| 52.3 &nbsp;&nbsp;&nbsp;| ...<br>
+      &nbsp; CALB1 | 30.1 &nbsp;&nbsp;&nbsp;| 28.5 &nbsp;&nbsp;&nbsp;| 32.0 &nbsp;&nbsp;&nbsp;| ...
+      </span><br>
+      1列目が遺伝子名、2列目以降が各サンプルの発現量（FPKM/TPM）です。
+      <button onclick="dlTemplate('fpkm')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレートをダウンロード</button>
     </div>
   </details>
   <div class="drop" id="fpkmDrop"
@@ -282,11 +277,16 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   </div>
 
   <details class="acc">
-    <summary>フォーマット詳細・テンプレート</summary>
+    <summary>入力ファイルの作り方</summary>
     <div class="acc-body">
-      <span style="color:var(--accent)">Format:</span> ID列（サンプル名）+ Dx列（診断群、"Control" 必須）を含むテーブル。列順不問。Age列があれば散布図に使用。<br>
-      <span style="color:var(--t4)">例: ID | Dx | Age | Sex | ...</span>
-      <button onclick="dlTemplate('demo')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+      サンプルIDと診断群（Dx）の列があるテーブルです。列の順番は自由です:<br>
+      <span style="color:var(--accent);font-family:var(--fm)">
+      &nbsp; ID &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Dx &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| Age &nbsp;| Sex | ...<br>
+      &nbsp; Sample01 | Control | 45 &nbsp;| M &nbsp;&nbsp;| ...<br>
+      &nbsp; Sample02 | Schizo &nbsp;| 41 &nbsp;| F &nbsp;&nbsp;| ...
+      </span><br>
+      Age, Sex, BMI などの列があれば、Figure の横軸に使えます。
+      <button onclick="dlTemplate('demo')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレートをダウンロード</button>
     </div>
   </details>
   <div class="drop" id="demoDrop"
@@ -334,11 +334,17 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   </div>
 
   <details class="acc">
-    <summary><span id="orUploadLabel"></span> — フォーマット詳細・テンプレート</summary>
+    <summary><span id="orUploadLabel"></span> — 入力ファイルの作り方</summary>
     <div class="acc-body">
-      Symbol + Fold Change 列があればOK。列順不問、FC形式は自動判定。P-Value/Rank列は無視されます。<br>
-      <span style="color:var(--warn)">Gene Group（方向性なし）:</span> Fold Change列がない遺伝子リストも使えます。その場合、全遺伝子がUP方向として扱われ、方向性を含まないenrichmentスコアになります。
-      <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
+      お手持ちのDEGリストがそのまま使えます。遺伝子名とFold Changeの列があればOK:<br>
+      <span style="color:var(--accent);font-family:var(--fm)">
+      &nbsp; Symbol | Fold Change | P-Value(あれば) | ...<br>
+      &nbsp; AQP4 &nbsp;&nbsp;| 224.5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 6.63E-20 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ...<br>
+      &nbsp; CALB1 &nbsp;| -40.2 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 1.10E-06 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ...
+      </span><br>
+      列の順番は自由。P-ValueやRank列は無視されます。FC形式（Ratio/Log2FC等）は自動判定。<br>
+      <span style="color:var(--warn)">遺伝子リストだけ（Fold Changeなし）:</span> 方向性なしの enrichment スコアとして計算されます。
+      <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレートをダウンロード</button>
     </div>
   </details>
   <div class="drop" id="idxDrop"
@@ -412,10 +418,11 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   <div id="figSection" style="display:none">
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
       <span style="font-size:14px;font-weight:600;color:var(--t2)">Figures</span>
-      <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--accent);border-radius:8px;padding:8px 14px">
-        <span style="font-size:13px;color:var(--accent);font-weight:500">X-axis:</span>
-        <select id="xAxisVar" onchange="redrawFigures()" style="padding:5px 12px;background:var(--s3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--fm);font-size:13px"></select>
-      </div>
+    </div>
+    <div id="xAxisBox" style="background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(74,222,128,.08));border:2px solid var(--accent);border-radius:10px;padding:12px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:15px;color:var(--accent);font-weight:600">Figureの横軸を変更できます →</span>
+      <select id="xAxisVar" onchange="redrawFigures()" style="padding:7px 16px;background:var(--surface);border:2px solid var(--accent);border-radius:8px;color:var(--text);font-family:var(--fm);font-size:14px;font-weight:500;min-width:180px"></select>
+      <span style="font-size:11px;color:var(--t3)">サンプル情報の列から選択（数値→散布図、カテゴリ→箱ひげ図に自動切替）</span>
     </div>
     <details class="acc" style="margin-bottom:14px">
       <summary style="font-size:12px">Advanced: Figure Settings</summary>
@@ -483,9 +490,9 @@ const T = {
     s3sub:"比較したいDEGリスト（遺伝子名＋Fold Change）をアップロードしてください（複数可）。通常のpathway解析と異なり、RFindは遺伝子の発現変動の「方向（UP/DN）」まで考慮してスコアを算出します。",
     presetLabel:"プリセットインデックス（クリックで追加）:",
     orUploadLabel:"または、お手持ちのDEGリストをアップロード:",
-    helpScore:"RFindスコアの見方：正のスコア → あなたのサンプルの発現パターンがインデックスと「同じ方向」に変動。負のスコア → 「逆方向」に変動。値が大きいほど一致度が高い。例えば Dev インデックスで正のスコアなら「胎児的な遺伝子発現パターンに近い」ことを示します。",
-    helpBox:"各診断群のスコア分布を比較。箱の中央線=中央値。Control群と比較してスコアが高い群は、そのインデックスの遺伝子パターンに近い発現を示しています。p値はWilcoxon順位和検定（vs Control）。",
-    helpScatter:"各サンプルのAge（横軸）とRFindスコア（縦軸）の関係。傾きが正 → 年齢とともにそのパターンが強まる。傾きが負 → 年齢とともに弱まる。点の色は診断群を表します。",
+    helpScore:"【スコアの読み方】\n＋（正）= そのサンプルの遺伝子発現が、インデックスと同じ方向に変動している\n−（負）= 逆方向に変動している\n値が大きいほど一致度が強い\n\n【例】Devインデックスでスコアが＋50 → 「胎児期に高発現する遺伝子群がこのサンプルでも高い＝胎児的パターン」\nスコアが−50 → 「胎児期パターンとは逆＝成熟的パターン」\n\nセルをクリックすると、スコアに寄与した遺伝子リストを確認できます。",
+    helpBox:"【箱ひげ図の読み方】\n各診断群のRFindスコアの分布を表示しています。\n箱の中央線 = 中央値、箱 = 四分位範囲、点 = 個々のサンプル\n\nControl群より箱が上にある → その群はインデックスのパターンに「近い」\nControl群より箱が下にある → 「逆のパターン」\n\np値はControl群との差の統計的有意性（Wilcoxon順位和検定）。\n*** p<0.001  ** p<0.01  * p<0.05  ns = 有意差なし",
+    helpScatter:"【散布図の読み方】\n横軸 = サンプル情報の変数、縦軸 = RFindスコア\n点の色 = 診断群\n\n点線 = 全サンプルの回帰直線\n右肩上がり → 横軸の値が大きいほどスコアが高い（パターンが強い）\n右肩下がり → 横軸の値が大きいほどスコアが低い\n\nR² = 説明力（1に近いほど関連が強い）\np値 = 傾きが偶然でない確率",
     s4title:"解析実行",
     s4sub:"設定を確認して実行します。サンプル数 x インデックス数分のRunning Fisherを計算します。",
     resTitle:"解析結果",
@@ -497,7 +504,7 @@ const T = {
     fpkmPrevTitle:"FPKMマトリックス（先頭5行5列）",
     demoPrevTitle:"Demographics照合結果",
     runLbl:"RFind 解析を実行",
-    runningLbl:"解析中...", cancelLbl:"解析を中止", demoBtn:"デモデータで試す",
+    runningLbl:"解析中...", cancelLbl:"解析を中止", demoBtn:"▶ デモデータで試す（数秒で結果が出ます）",
     methodsLbl:"Methods文を生成",
     statSamples:"解析サンプル数", statIndexes:"インデックス数", statCtrl:"Controlサンプル数", statGenes:"共通遺伝子数",
     dlLbl:"結果をExcelでダウンロード",
@@ -520,9 +527,9 @@ const T = {
     s3sub:"Upload your DEG list (gene symbols + fold change). Multiple files supported. Unlike standard pathway analysis, RFind evaluates directional concordance (UP/DN) between your data and the reference.",
     presetLabel:"Preset indexes (click to add):",
     orUploadLabel:"Or upload your own DEG list:",
-    helpScore:"How to read RFind scores: Positive → your sample's expression pattern changes in the SAME direction as the index. Negative → OPPOSITE direction. Larger magnitude = stronger concordance. E.g., a positive Dev score means 'fetal-like expression pattern'.",
-    helpBox:"Compare score distributions across diagnostic groups. Center line = median. Groups with higher scores show expression patterns more similar to the index. P-values: Wilcoxon rank-sum test (vs Control).",
-    helpScatter:"Relationship between Age (x-axis) and RFind score (y-axis). Positive slope → the pattern strengthens with age. Negative slope → weakens with age. Colors represent diagnostic groups.",
+    helpScore:"[How to read scores]\n+ (positive) = This sample's gene expression shifts in the SAME direction as the index\n− (negative) = OPPOSITE direction\nLarger magnitude = stronger concordance\n\n[Example] Dev index, score +50 → 'Genes that are high in fetal brain are also high in this sample = fetal-like pattern'\nScore −50 → 'Opposite of fetal = mature-like pattern'\n\nClick a score cell to see which genes are driving the score.",
+    helpBox:"[How to read box plots]\nEach box shows the RFind score distribution for a diagnostic group.\nCenter line = median, box = interquartile range, dots = individual samples\n\nBox above Control → that group's expression is 'similar' to the index pattern\nBox below Control → 'opposite' pattern\n\nP-values: statistical significance vs Control (Wilcoxon rank-sum test)\n*** p<0.001  ** p<0.01  * p<0.05  ns = not significant",
+    helpScatter:"[How to read scatter plots]\nX-axis = sample variable, Y-axis = RFind score\nDot color = diagnostic group\n\nDotted line = regression across all samples\nUpward slope → higher X value = stronger pattern match\nDownward slope → higher X value = weaker match\n\nR² = how well X explains the score (closer to 1 = stronger)\np-value = statistical significance of the slope",
     s4title:"Run Analysis",
     s4sub:"Review settings and run. Running Fisher will be computed for each sample x index.",
     resTitle:"Results",
@@ -534,7 +541,7 @@ const T = {
     fpkmPrevTitle:"FPKM Matrix (first 5 rows x 5 cols)",
     demoPrevTitle:"Demographics matching result",
     runLbl:"Run RFind Analysis",
-    runningLbl:"Running...", cancelLbl:"Cancel", demoBtn:"Try with demo data",
+    runningLbl:"Running...", cancelLbl:"Cancel", demoBtn:"▶ Try with demo data (results in seconds)",
     methodsLbl:"Generate Methods text",
     statSamples:"Samples analyzed", statIndexes:"Indexes", statCtrl:"Control samples", statGenes:"Common genes",
     dlLbl:"Download results as Excel",
@@ -549,13 +556,8 @@ function t(k){ return T[L][k]||k }
 function applyTexts(){
   const ids=['subtitle','s1title','s1sub','s2title','s2sub','s3title','s3sub','s4title','s4sub',
     'resTitle','resSub','clickUp1','orDrag1','clickUp2','orDrag2','clickUp3','orDrag3','idxHint',
-    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel','privacyNote','catchcopy','valueProp'];
+    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel','privacyNote','catchcopy'];
   ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
-  // Hero points
-  const hp=document.getElementById('heroPoints');
-  if(hp) hp.innerHTML=['hero1','hero2','hero3'].map(k=>
-    `<span style="font-size:13px;color:var(--t2);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 14px">${t(k)}</span>`
-  ).join('');
   buildPresetBtns();
 }
 function setLang(l){
@@ -692,7 +694,7 @@ function renderIdxList(){
     return `<div class="file-pill" style="margin-right:8px;margin-bottom:6px;display:inline-flex;flex-wrap:wrap">
       <span style="color:${col}">&#9632;</span>&nbsp;
       <span style="color:${col}">${idx.name}</span>&nbsp;
-      <span style="color:var(--t3)">(UP:${idx.nUp} DN:${idx.nDn} / ${idx.genes.length} genes)</span>&nbsp;
+      <span style="color:var(--t3)">(UP:${idx.nUp} DOWN:${idx.nDn} / ${idx.genes.length} genes)</span>&nbsp;
       <span style="color:var(--accent);font-size:10px">[${fmt}]</span>
       <span style="cursor:pointer;margin-left:8px;color:var(--t4)" onclick="removeIdx(${i})">&times;</span>
     </div>`;
