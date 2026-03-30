@@ -187,15 +187,39 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
       <span class="logo-tag">Web Tool v3</span>
     </div>
     <div class="hdr-right">
+      <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="font-size:11px;color:var(--t3);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t3)'">GitHub</a>
+      <span style="color:var(--t4);font-size:10px">|</span>
+      <a href="#" onclick="document.getElementById('citeBox').style.display=document.getElementById('citeBox').style.display==='none'?'':'none';return false" style="font-size:11px;color:var(--t3);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t3)'">How to Cite</a>
+      <span style="color:var(--t4);font-size:10px">|</span>
       <div class="lang-wrap">
         <button class="lang-btn on" onclick="setLang('ja')">日本語</button>
         <button class="lang-btn"   onclick="setLang('en')">English</button>
       </div>
     </div>
   </div>
-  <p class="subtitle" id="subtitle"></p>
-  <div style="margin-top:10px">
-    <button onclick="loadDemoAndRun()" style="padding:10px 28px;border-radius:8px;border:2px solid var(--accent);background:none;color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:16px;font-weight:600;transition:all var(--transition)" onmouseover="this.style.background='rgba(56,189,248,.1)';this.style.borderColor='var(--accent)'" onmouseout="this.style.background='none'" id="demoBtn"></button>
+  <div id="citeBox" style="display:none;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:10px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px">How to Cite</div>
+    <div style="font-size:11px;color:var(--t3);line-height:1.7">
+      Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method.<br>
+      Available at: <a href="https://tmurano.github.io/rfind-tool/" style="color:var(--accent)">https://tmurano.github.io/rfind-tool/</a><br>
+      GitHub: <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="color:var(--accent)">https://github.com/tmurano/rfind-tool</a><br>
+      <span style="color:var(--t4)">Algorithm: Illumina BaseSpace Correlation Engine Running Fisher (Tech Note 970-2014-007)</span>
+    </div>
+    <button onclick="navigator.clipboard.writeText('Murano T. RFind Web Tool: Rank-based directional enrichment analysis using Running Fisher method. https://tmurano.github.io/rfind-tool/');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy citation',1500)" style="margin-top:6px;padding:3px 10px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">Copy citation</button>
+  </div>
+  <p id="valueProp" style="color:var(--accent);font-size:14px;font-weight:600;margin-top:12px;margin-bottom:6px;letter-spacing:.01em"></p>
+  <p id="catchcopy" style="color:var(--t2);font-size:14px;font-weight:400;margin-bottom:14px;line-height:1.5"></p>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px" id="heroPoints"></div>
+  <details class="acc" style="margin-bottom:14px">
+    <summary style="font-size:12px;color:var(--accent)">Example output</summary>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+      <img src="example_output.png" alt="Score table" style="border-radius:8px;border:1px solid var(--border);max-width:48%;height:auto">
+      <img src="example_output1.png" alt="Box plots" style="border-radius:8px;border:1px solid var(--border);max-width:48%;height:auto">
+    </div>
+  </details>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <button onclick="loadDemoAndRun()" style="padding:10px 28px;border-radius:8px;border:2px solid var(--accent);background:rgba(56,189,248,.08);color:var(--accent);cursor:pointer;font-family:var(--fb);font-size:16px;font-weight:600;transition:all var(--transition)" onmouseover="this.style.background='rgba(56,189,248,.18)'" onmouseout="this.style.background='rgba(56,189,248,.08)'" id="demoBtn"></button>
+    <span id="subtitle" class="subtitle" style="margin:0"></span>
   </div>
 </header>
 
@@ -312,7 +336,8 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
   <details class="acc">
     <summary><span id="orUploadLabel"></span> — フォーマット詳細・テンプレート</summary>
     <div class="acc-body">
-      Symbol + Fold Change 列があればOK。列順不問、FC形式は自動判定。P-Value/Rank列は無視されます。
+      Symbol + Fold Change 列があればOK。列順不問、FC形式は自動判定。P-Value/Rank列は無視されます。<br>
+      <span style="color:var(--warn)">Gene Group（方向性なし）:</span> Fold Change列がない遺伝子リストも使えます。その場合、全遺伝子がUP方向として扱われ、方向性を含まないenrichmentスコアになります。
       <button onclick="dlTemplate('idx')" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border2);border-radius:4px;background:none;color:var(--accent);cursor:pointer;font-size:10px">テンプレート</button>
     </div>
   </details>
@@ -385,11 +410,12 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 
   <hr class="div">
   <div id="figSection" style="display:none">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap">
       <span style="font-size:14px;font-weight:600;color:var(--t2)">Figures</span>
-      <label style="font-size:11px;color:var(--t3)">X-axis variable:
-        <select id="xAxisVar" onchange="redrawFigures()" style="padding:3px 8px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--fm);font-size:11px;margin-left:4px"></select>
-      </label>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--accent);border-radius:8px;padding:8px 14px">
+        <span style="font-size:13px;color:var(--accent);font-weight:500">X-axis:</span>
+        <select id="xAxisVar" onchange="redrawFigures()" style="padding:5px 12px;background:var(--s3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--fm);font-size:13px"></select>
+      </div>
     </div>
     <details class="acc" style="margin-bottom:14px">
       <summary style="font-size:12px">Advanced: Figure Settings</summary>
@@ -430,13 +456,10 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 </div>
 
 
-<div style="margin:24px 0 0;padding:14px 18px;background:var(--s2);border:1px solid var(--border);border-radius:10px;text-align:center">
-  <span style="color:var(--green);font-size:13px;font-weight:600" id="privacyNote"></span>
-</div>
 
 <footer>
   RFind Web Tool v3 &#8212; <span id="footNote"></span><br>
-  <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">Running Fisher (4-direction) &middot; All computation runs client-side</span>
+  <span style="font-family:var(--fm);font-size:10px;color:var(--t4)">Running Fisher (4-direction) &middot; All computation runs client-side &middot; <a href="https://github.com/tmurano/rfind-tool" target="_blank" style="color:var(--t4)">Source code &amp; R/Python scripts on GitHub</a></span>
 </footer>
 </div>
 
@@ -446,11 +469,16 @@ footer{text-align:center;padding:28px 0 18px;color:var(--t3);font-size:11px}
 ══════════════════════════════════════════════════════ */
 const T = {
   ja:{
-    subtitle:"RFindは、あなたの遺伝子発現データが参照gene setとどの程度「方向性を含めて一致」しているかを、サンプルごとに定量するツールです。発現量マトリックスと参照インデックスをアップロードするだけで、各サンプルのRFスコアを算出します。すべての処理はブラウザ上で完結し、データは外部に送信されません。",
+    valueProp:"発現マトリックス + サンプル情報 + DEGリスト → サンプルごとの方向性スコア・Figure・Methods文を即時出力",
+    catchcopy:"遺伝子の発現変動の「方向（UP/DN）」まで考慮した Running Fisher 法で、あなたのデータと参照gene setの類似度をサンプル単位で数値化します。",
+    subtitle:"3つのファイルをアップロードするだけ →",
+    hero1:"📊 Figure + Methods文が即完成",
+    hero2:"📁 発現量 + サンプル情報 + DEGリストの3ファイルだけ",
+    hero3:"🔒 データはブラウザ内処理。外部送信なし",
     s1title:"Step 1: 発現量マトリックス",
     s1sub:"遺伝子 x サンプルの発現量マトリックス（CSV/Excel）をアップロードしてください。",
-    s2title:"Step 2: サンプル情報（Demographics）",
-    s2sub:"サンプルIDとDx（診断）列を含むファイルをアップロードしてください。Dx=\"Control\"のサンプルが基準になります。",
+    s2title:"Step 2: サンプル情報",
+    s2sub:"サンプルIDとDx（診断群）列を含むファイルをアップロードしてください。Dx=\"Control\"のサンプルが必須です（Control群の平均発現量を基準として各サンプルのFold Changeを計算し、遺伝子の変動方向を定義するため）。",
     s3title:"Step 3: 参照インデックス（Gene Set）",
     s3sub:"比較したいDEGリスト（遺伝子名＋Fold Change）をアップロードしてください（複数可）。通常のpathway解析と異なり、RFindは遺伝子の発現変動の「方向（UP/DN）」まで考慮してスコアを算出します。",
     presetLabel:"プリセットインデックス（クリックで追加）:",
@@ -478,11 +506,16 @@ const T = {
     colSample:"サンプルID", colDx:"診断群",
   },
   en:{
-    subtitle:"RFind quantifies how well each sample's gene expression matches a reference gene set in terms of directional concordance, on a per-sample basis. Simply upload your expression matrix and reference indexes to compute RF scores. All computation runs in your browser — no data is sent to any server.",
+    valueProp:"Expression matrix + sample info + DEG list → per-sample directional scores, figures & Methods text, instantly",
+    catchcopy:"Using 4-direction Running Fisher analysis, RFind quantifies how well each sample's expression profile matches your reference gene sets — including UP/DN directionality.",
+    subtitle:"Upload 3 files →",
+    hero1:"📊 Instant figures + Methods text",
+    hero2:"📁 Expression matrix + sample info + DEG list — that's all",
+    hero3:"🔒 All computation in your browser. No data leaves your machine",
     s1title:"Step 1: Expression Matrix",
     s1sub:"Upload a gene x sample expression matrix (CSV/Excel).",
-    s2title:"Step 2: Sample Info (Demographics)",
-    s2sub:"Upload a file containing sample IDs and a Dx (diagnosis) column. Samples with Dx=\"Control\" will be used as the baseline.",
+    s2title:"Step 2: Sample Info",
+    s2sub:"Upload a file containing sample IDs and a Dx (diagnosis) column. Dx=\"Control\" is required — Control samples define the baseline expression from which each sample's fold change and gene directionality are computed.",
     s3title:"Step 3: Reference Index (Gene Set)",
     s3sub:"Upload your DEG list (gene symbols + fold change). Multiple files supported. Unlike standard pathway analysis, RFind evaluates directional concordance (UP/DN) between your data and the reference.",
     presetLabel:"Preset indexes (click to add):",
@@ -516,8 +549,13 @@ function t(k){ return T[L][k]||k }
 function applyTexts(){
   const ids=['subtitle','s1title','s1sub','s2title','s2sub','s3title','s3sub','s4title','s4sub',
     'resTitle','resSub','clickUp1','orDrag1','clickUp2','orDrag2','clickUp3','orDrag3','idxHint',
-    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel','privacyNote'];
+    'runLbl','dlLbl','footNote','demoBtn','methodsLbl','presetLabel','orUploadLabel','privacyNote','catchcopy','valueProp'];
   ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t(id)});
+  // Hero points
+  const hp=document.getElementById('heroPoints');
+  if(hp) hp.innerHTML=['hero1','hero2','hero3'].map(k=>
+    `<span style="font-size:13px;color:var(--t2);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 14px">${t(k)}</span>`
+  ).join('');
   buildPresetBtns();
 }
 function setLang(l){
@@ -602,18 +640,25 @@ function parseIndexCSV(aoa){
   // Find Fold Change column (flexible naming, any position)
   const fcCol=hdr.findIndex(h=>fcPattern.test(h));
 
-  if(symCol<0||fcCol<0){
-    return {genes:[], error:symCol<0?'symbol':'fc', headers:hdr};
+  if(symCol<0){
+    return {genes:[], error:'symbol', headers:hdr};
   }
 
-  // First pass: collect raw FC values for format detection
+  // If no FC column found → treat as gene group (all FC=1, no directionality)
+  const isGeneGroup=(fcCol<0);
+
   const dataStart=headerRowIdx+1;
-  const rawFCs=[];
-  for(let i=dataStart;i<aoa.length;i++){
-    const fc=parseFloat(aoa[i][fcCol]);
-    if(!isNaN(fc)&&fc!==0) rawFCs.push(fc);
+  let fcFormat='signedfc';
+
+  if(!isGeneGroup){
+    // First pass: collect raw FC values for format detection
+    const rawFCs=[];
+    for(let i=dataStart;i<aoa.length;i++){
+      const fc=parseFloat(aoa[i][fcCol]);
+      if(!isNaN(fc)&&fc!==0) rawFCs.push(fc);
+    }
+    fcFormat=detectFCFormat(rawFCs);
   }
-  const fcFormat=detectFCFormat(rawFCs);
 
   // Second pass: parse with conversion
   let normCount=0;
@@ -621,20 +666,26 @@ function parseIndexCSV(aoa){
     const row=aoa[i];
     const raw=String(row[symCol]).trim().toUpperCase();
     const sym=normalizeGene(String(row[symCol]));
-    let fc=parseFloat(row[fcCol]);
-    if(!sym||isNaN(fc)||fc===0)continue;
-    fc=convertFC(fc, fcFormat);
-    if(fc===0)continue;
+    if(!sym)continue;
+    let fc;
+    if(isGeneGroup){
+      fc=1;  // Gene group: no directionality, all FC=1 (UP)
+    } else {
+      fc=parseFloat(row[fcCol]);
+      if(isNaN(fc)||fc===0)continue;
+      fc=convertFC(fc, fcFormat);
+      if(fc===0)continue;
+    }
     if(sym!==raw) normCount++;
     genes.push({Symbol:sym, FC:fc});
   }
-  return {genes, error:null, normCount, fcFormat};
+  return {genes, error:null, normCount, fcFormat:isGeneGroup?'genegroup':fcFormat};
 }
 
 function renderIdxList(){
   const el=document.getElementById('idxList');
   if(uploadedIndexes.length===0){el.innerHTML='';return}
-  const fmtLabel={ratio:'Ratio→SignedFC', log2fc:'Log2FC→SignedFC', signedfc:'SignedFC'};
+  const fmtLabel={ratio:'Ratio→SignedFC', log2fc:'Log2FC→SignedFC', signedfc:'SignedFC', genegroup:'Gene Group (no direction)'};
   el.innerHTML=uploadedIndexes.map((idx,i)=>{
     const col=IDX_COLORS[i%IDX_COLORS.length];
     const fmt=fmtLabel[idx.fcFormat]||'SignedFC';
@@ -1130,20 +1181,23 @@ function loadIdxFiles(e){
    Preset indexes
 ══════════════════════════════════════════════════════ */
 const PRESETS=[
-  {file:'Dev.csv', name:'Dev', desc:{ja:'胎生期→成熟の発生軸（Jaffe 2020）',en:'Fetal→mature developmental axis (Jaffe 2020)'},color:'#38bdf8'},
-  {file:'imGC_DEG.csv', name:'imGC', desc:{ja:'未成熟顆粒細胞マーカー（Zhou 2022）',en:'Immature granule cell markers (Zhou 2022)'},color:'#4ade80'},
-  {file:'Kainate_Day03.csv', name:'Kainate D3', desc:{ja:'カイニン酸誘発後3日目DEG（マウスDG）',en:'Kainate-induced DEG day 3 (mouse DG)'},color:'#fb923c'},
-  {file:'pH.csv', name:'pH', desc:{ja:'組織pH感受性遺伝子セット',en:'Tissue pH-sensitive gene set'},color:'#a78bfa'},
+  {file:'Dev.csv', name:'Dev', desc:{ja:'胎生期→成熟の発生軸（Kang et al. 2011, Nature）',en:'Fetal→mature developmental axis (Kang et al. 2011, Nature)'},color:'#38bdf8',ref:'https://pubmed.ncbi.nlm.nih.gov/22031440/'},
+  {file:'imGC_DEG.csv', name:'imGC', desc:{ja:'未成熟顆粒細胞マーカー（Zhou et al. 2022, Nature）',en:'Immature granule cell markers (Zhou et al. 2022, Nature)'},color:'#4ade80',ref:'https://www.nature.com/articles/s41586-022-04912-w'},
+  {file:'Kainate_Day03.csv', name:'Excitability', desc:{ja:'神経興奮性インデックス（Mori et al. 2017, Sci Data）',en:'Neural excitability index (Mori et al. 2017, Sci Data)'},color:'#fb923c',ref:'https://www.nature.com/articles/sdata201761'},
+  {file:'pH.csv', name:'pH', desc:{ja:'組織pH感受性遺伝子セット（Atz et al. 2010, Am J Med Genet）',en:'Tissue pH-sensitive gene set (Atz et al. 2010, Am J Med Genet)'},color:'#a78bfa',ref:'https://pubmed.ncbi.nlm.nih.gov/20138973/'},
 ];
 
 function buildPresetBtns(){
   const container=document.getElementById('presetBtns');
   if(!container)return;
   container.innerHTML=PRESETS.map((p,i)=>
-    `<button onclick="loadPreset(${i})" id="preset_${i}" style="padding:5px 12px;border-radius:6px;border:1.5px solid ${p.color};background:none;color:${p.color};cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition);line-height:1.3;text-align:left" title="${p.desc[L]}">
-      <span style="font-weight:600">${p.name}</span><br>
-      <span style="font-size:9px;color:var(--t3)">${p.desc[L]}</span>
-    </button>`
+    `<div style="display:inline-flex;flex-direction:column;align-items:flex-start">
+      <button onclick="loadPreset(${i})" id="preset_${i}" style="padding:5px 12px;border-radius:6px;border:1.5px solid ${p.color};background:none;color:${p.color};cursor:pointer;font-family:var(--fb);font-size:11px;transition:all var(--transition);line-height:1.3;text-align:left" title="${p.desc[L]}">
+        <span style="font-weight:600">${p.name}</span><br>
+        <span style="font-size:9px;color:var(--t3)">${p.desc[L]}</span>
+      </button>
+      ${p.ref?`<a href="${p.ref}" target="_blank" style="font-size:9px;color:var(--t4);margin-top:2px;margin-left:4px;text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--t4)'">[ref]</a>`:''}
+    </div>`
   ).join('');
 }
 
