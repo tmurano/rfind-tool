@@ -132,6 +132,16 @@ tbody tr:hover td{background:rgba(56,189,248,.025)}
   border-radius:8px;color:var(--t2);padding:8px 16px;cursor:pointer;font-size:12px;font-family:var(--fb);transition:all var(--transition)}
 .dl-btn:hover{border-color:var(--green);color:var(--green)}
 
+/* HELP TOOLTIP */
+.help-q{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;
+  border:1px solid var(--border2);color:var(--t3);font-size:10px;cursor:help;margin-left:5px;position:relative;vertical-align:middle}
+.help-q:hover{border-color:var(--accent);color:var(--accent)}
+.help-q .help-tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;
+  font-size:11px;color:var(--t2);line-height:1.6;width:280px;z-index:99;font-weight:normal;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none}
+.help-q:hover .help-tip{display:block}
+
 /* FIGURE CARDS */
 .fig-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px}
 .fig-title{font-size:13px;font-weight:600;color:var(--t2);margin-bottom:10px}
@@ -419,6 +429,9 @@ const T = {
     s3sub:"比較したいDEGリスト（遺伝子名＋Fold Change）をアップロードしてください（複数可）。通常のpathway解析と異なり、RFindは遺伝子の発現変動の「方向（UP/DN）」まで考慮してスコアを算出します。",
     presetLabel:"プリセットインデックス（クリックで追加）:",
     orUploadLabel:"または、お手持ちのDEGリストをアップロード:",
+    helpScore:"RFindスコアの見方：正のスコア → あなたのサンプルの発現パターンがインデックスと「同じ方向」に変動。負のスコア → 「逆方向」に変動。値が大きいほど一致度が高い。例えば Dev インデックスで正のスコアなら「胎児的な遺伝子発現パターンに近い」ことを示します。",
+    helpBox:"各診断群のスコア分布を比較。箱の中央線=中央値。Control群と比較してスコアが高い群は、そのインデックスの遺伝子パターンに近い発現を示しています。p値はWilcoxon順位和検定（vs Control）。",
+    helpScatter:"各サンプルのAge（横軸）とRFindスコア（縦軸）の関係。傾きが正 → 年齢とともにそのパターンが強まる。傾きが負 → 年齢とともに弱まる。点の色は診断群を表します。",
     s4title:"解析実行",
     s4sub:"設定を確認して実行します。サンプル数 x インデックス数分のRunning Fisherを計算します。",
     resTitle:"解析結果",
@@ -447,6 +460,9 @@ const T = {
     s3sub:"Upload your DEG list (gene symbols + fold change). Multiple files supported. Unlike standard pathway analysis, RFind evaluates directional concordance (UP/DN) between your data and the reference.",
     presetLabel:"Preset indexes (click to add):",
     orUploadLabel:"Or upload your own DEG list:",
+    helpScore:"How to read RFind scores: Positive → your sample's expression pattern changes in the SAME direction as the index. Negative → OPPOSITE direction. Larger magnitude = stronger concordance. E.g., a positive Dev score means 'fetal-like expression pattern'.",
+    helpBox:"Compare score distributions across diagnostic groups. Center line = median. Groups with higher scores show expression patterns more similar to the index. P-values: Wilcoxon rank-sum test (vs Control).",
+    helpScatter:"Relationship between Age (x-axis) and RFind score (y-axis). Positive slope → the pattern strengthens with age. Negative slope → weakens with age. Colors represent diagnostic groups.",
     s4title:"Run Analysis",
     s4sub:"Review settings and run. Running Fisher will be computed for each sample x index.",
     resTitle:"Results",
@@ -1550,7 +1566,8 @@ function renderResults(res){
     const hd=document.getElementById('resHead');
     hd.innerHTML=cols.map((c,ci)=>{
       const arrow=ci===sortCol?(sortAsc?' &#9650;':' &#9660;'):'';
-      return `<th onclick="resSort(${ci})" style="cursor:pointer">${c.label}${arrow}</th>`;
+      const helpIcon=c.scoreIdx!==undefined?`<span class="help-q">?<span class="help-tip">${t('helpScore')}</span></span>`:'';
+      return `<th onclick="resSort(${ci})" style="cursor:pointer">${c.label}${helpIcon}${arrow}</th>`;
     }).join('');
 
     const sorted=[...res.scores];
@@ -1771,7 +1788,7 @@ function drawFigures(res){
   // --- Box plots with p-values (one per index) ---
   for(let i=0;i<nIdx;i++){
     const idxName=res.selIdx[i].name;
-    const div=createPlotlyCard(container, `Box Plot: ${idxName}`, `box_${i}`);
+    const div=createPlotlyCard(container, `Box Plot: ${idxName}`, `box_${i}`, t('helpBox'));
 
     const traces=dxGroups.map(dx=>{
       const vals=res.scores.filter(r=>r.dx===dx).map(r=>r.scores[i]);
@@ -1811,7 +1828,7 @@ function drawFigures(res){
   if(res.hasAge){
     for(let i=0;i<nIdx;i++){
       const idxName=res.selIdx[i].name;
-      const div=createPlotlyCard(container, `Age vs RFind Score: ${idxName}`, `scat_${i}`);
+      const div=createPlotlyCard(container, `Age vs RFind Score: ${idxName}`, `scat_${i}`, t('helpScatter'));
 
       const traces=dxGroups.map(dx=>{
         const pts=res.scores.filter(r=>r.dx===dx&&r.age!==null);
@@ -1904,7 +1921,7 @@ function drawFigures(res){
   }
 }
 
-function createPlotlyCard(container, title, id){
+function createPlotlyCard(container, title, id, helpText){
   const card=document.createElement('div');
   card.className='fig-card';
   const plotDiv=document.createElement('div');
@@ -1913,7 +1930,8 @@ function createPlotlyCard(container, title, id){
   plotDiv.style.height='400px';
   plotDiv.style.background='#fff';
   plotDiv.style.borderRadius='6px';
-  card.innerHTML=`<div class="fig-title">${title}</div>`;
+  const helpHtml=helpText?` <span class="help-q">?<span class="help-tip">${helpText}</span></span>`:'';
+  card.innerHTML=`<div class="fig-title">${title}${helpHtml}</div>`;
   card.appendChild(plotDiv);
   // Download buttons
   const dlRow=document.createElement('div');
